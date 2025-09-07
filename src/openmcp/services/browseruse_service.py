@@ -153,6 +153,249 @@ class BrowserSession:
             raise RuntimeError("Browser session not started")
         
         return self.driver.get_screenshot_as_base64()
+    
+    def observe(self) -> Dict[str, Any]:
+        """Get simplified text-based DOM tree of important visible elements with interaction paths."""
+        if not self.driver:
+            raise RuntimeError("Browser session not started")
+        
+        # JavaScript to get simplified DOM structure with paths
+        js_script = """
+        function getSimplifiedDOM() {
+            const interactiveSelectors = [
+                'button', 'a[href]', 'input', 'textarea', 'select', 
+                '[onclick]', '[role="button"]', '[role="link"]', '[role="textbox"]',
+                '[type="submit"]', '[type="button"]', '[type="text"]', '[type="email"]',
+                '[type="password"]', '[type="search"]', '[type="url"]', '[type="tel"]',
+                '[type="number"]', '[contenteditable="true"]'
+            ];
+            
+            const importantSelectors = [
+                'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                'p', 'span', 'div[role="main"]', 'main', 'article',
+                'nav', 'header', 'footer', 'section',
+                'img[alt]', 'form', 'table', 'ul', 'ol', 'li'
+            ];
+            
+            function isVisible(element) {
+                const style = window.getComputedStyle(element);
+                const rect = element.getBoundingClientRect();
+                return style.display !== 'none' && 
+                       style.visibility !== 'hidden' && 
+                       style.opacity !== '0' &&
+                       rect.width > 0 && 
+                       rect.height > 0 &&
+                       rect.top < window.innerHeight &&
+                       rect.bottom > 0 &&
+                       rect.left < window.innerWidth &&
+                       rect.right > 0;
+            }
+            
+            function getTextContent(element) {
+                let text = element.textContent || element.innerText || '';
+                text = text.trim().replace(/\\s+/g, ' ');
+                return text.substring(0, 200); // Limit text length
+            }
+            
+            function getElementPath(element) {
+                if (element.id) {
+                    return '#' + element.id;
+                }
+                
+                let path = element.tagName.toLowerCase();
+                let parent = element.parentElement;
+                let childIndex = Array.from(parent?.children || []).indexOf(element);
+                
+                if (parent && childIndex >= 0) {
+                    path = parent.tagName.toLowerCase() + ' > ' + path + ':nth-child(' + (childIndex + 1) + ')';
+                }
+                
+                // Add class information if available
+                if (element.className && typeof element.className === 'string') {
+                    const classes = element.className.split(' ').filter(c => c.trim()).slice(0, 2);
+                    if (classes.length > 0) {
+                        path += '.' + classes.join('.');
+                    }
+                }
+                
+                return path;
+            }
+            
+            function getElementAttributes(element) {
+                const attrs = {};
+                if (element.getAttribute('placeholder')) attrs.placeholder = element.getAttribute('placeholder');
+                if (element.getAttribute('title')) attrs.title = element.getAttribute('title');
+                if (element.getAttribute('alt')) attrs.alt = element.getAttribute('alt');
+                if (element.getAttribute('href')) attrs.href = element.getAttribute('href');
+                if (element.getAttribute('type')) attrs.type = element.getAttribute('type');
+                if (element.getAttribute('value')) attrs.value = element.getAttribute('value');
+                if (element.getAttribute('aria-label')) attrs['aria-label'] = element.getAttribute('aria-label');
+                return attrs;
+            }
+            
+            const result = {
+                interactive_elements: [],
+                content_elements: [],
+                page_structure: {
+                    title: document.title,
+                    url: window.location.href,
+                    viewport: {
+                        width: window.innerWidth,
+                        height: window.innerHeight
+                    }
+                }
+            };
+            
+            // Get interactive elements
+            interactiveSelectors.forEach(selector => {
+                try {
+                    const elements = document.querySelectorAll(selector);
+                    elements.forEach(element => {
+                        if (isVisible(element)) {
+                            const text = getTextContent(element);
+                            const path = getElementPath(element);
+                            const attrs = getElementAttributes(element);
+                            
+                            result.interactive_elements.push({
+                                tag: element.tagName.toLowerCase(),
+                                text: text,
+                                dom_path: path,
+                                attributes: attrs,
+                                bounds: {
+                                    x: Math.round(element.getBoundingClientRect().left),
+                                    y: Math.round(element.getBoundingClientRect().top),
+                                    width: Math.round(element.getBoundingClientRect().width),
+                                    height: Math.round(element.getBoundingClientRect().height)
+                                }
+                            });
+                        }
+                    });
+                } catch (e) {
+                    // Ignore selector errors
+                }
+            });
+            
+            // Get important content elements
+            importantSelectors.forEach(selector => {
+                try {
+                    const elements = document.querySelectorAll(selector);
+                    elements.forEach(element => {
+                        if (isVisible(element)) {
+                            const text = getTextContent(element);
+                            if (text.length > 3) { // Only include elements with meaningful text
+                                const path = getElementPath(element);
+                                const attrs = getElementAttributes(element);
+                                
+                                result.content_elements.push({
+                                    tag: element.tagName.toLowerCase(),
+                                    text: text,
+                                    dom_path: path,
+                                    attributes: attrs
+                                });
+                            }
+                        }
+                    });
+                } catch (e) {
+                    // Ignore selector errors
+                }
+            });
+            
+            // Remove duplicates and sort by position
+            result.interactive_elements = result.interactive_elements.filter((elem, index, arr) => 
+                arr.findIndex(e => e.dom_path === elem.dom_path) === index
+            ).sort((a, b) => a.bounds.y - b.bounds.y || a.bounds.x - b.bounds.x);
+            
+            result.content_elements = result.content_elements.filter((elem, index, arr) => 
+                arr.findIndex(e => e.dom_path === elem.dom_path) === index
+            );
+            
+            return result;
+        }
+        
+        return getSimplifiedDOM();
+        """
+        
+        try:
+            dom_data = self.driver.execute_script(js_script)
+            
+            # Format the result into a readable text representation
+            formatted_result = self._format_dom_observation(dom_data)
+            
+            return {
+                "status": "success",
+                "raw_data": dom_data,
+                "formatted_text": formatted_result,
+                "interactive_count": len(dom_data.get("interactive_elements", [])),
+                "content_count": len(dom_data.get("content_elements", []))
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    def _format_dom_observation(self, dom_data: Dict[str, Any]) -> str:
+        """Format DOM data into readable text representation."""
+        lines = []
+        
+        # Page info
+        page_info = dom_data.get("page_structure", {})
+        lines.append(f"=== PAGE OBSERVATION ===")
+        lines.append(f"Title: {page_info.get('title', 'N/A')}")
+        lines.append(f"URL: {page_info.get('url', 'N/A')}")
+        lines.append(f"Viewport: {page_info.get('viewport', {}).get('width', 0)}x{page_info.get('viewport', {}).get('height', 0)}")
+        lines.append("")
+        
+        # Interactive elements
+        interactive = dom_data.get("interactive_elements", [])
+        if interactive:
+            lines.append(f"=== INTERACTIVE ELEMENTS ({len(interactive)}) ===")
+            for i, elem in enumerate(interactive):
+                lines.append(f"[{i+1}] {elem['tag'].upper()}")
+                lines.append(f"    Path: {elem['dom_path']}")
+                if elem.get('text'):
+                    lines.append(f"    Text: {elem['text'][:100]}{'...' if len(elem['text']) > 100 else ''}")
+                
+                attrs = elem.get('attributes', {})
+                attr_str = []
+                for key, value in attrs.items():
+                    if value:
+                        attr_str.append(f"{key}='{value[:50]}{'...' if len(str(value)) > 50 else ''}'")
+                if attr_str:
+                    lines.append(f"    Attributes: {', '.join(attr_str)}")
+                
+                bounds = elem.get('bounds', {})
+                if bounds:
+                    lines.append(f"    Position: ({bounds.get('x', 0)}, {bounds.get('y', 0)}) Size: {bounds.get('width', 0)}x{bounds.get('height', 0)}")
+                lines.append("")
+            lines.append("")
+        
+        # Content elements (abbreviated)
+        content = dom_data.get("content_elements", [])
+        if content:
+            lines.append(f"=== CONTENT ELEMENTS ({len(content)}) ===")
+            
+            # Group by tag type
+            by_tag = {}
+            for elem in content:
+                tag = elem['tag']
+                if tag not in by_tag:
+                    by_tag[tag] = []
+                by_tag[tag].append(elem)
+            
+            for tag, elements in by_tag.items():
+                lines.append(f"{tag.upper()} ({len(elements)}):")
+                for elem in elements[:5]:  # Show first 5 of each type
+                    text = elem.get('text', '')[:80]
+                    if len(elem.get('text', '')) > 80:
+                        text += '...'
+                    lines.append(f"  • {text}")
+                if len(elements) > 5:
+                    lines.append(f"  ... and {len(elements) - 5} more")
+                lines.append("")
+        
+        return "\\n".join(lines)
 
 
 class BrowseruseService(BaseMCPService):
@@ -293,6 +536,14 @@ class BrowseruseService(BaseMCPService):
                 }
             },
             {
+                "name": "observe",
+                "description": "Get simplified text-based DOM tree of important visible elements with interaction paths",
+                "parameters": {
+                    "type": "object",
+                    "properties": {}
+                }
+            },
+            {
                 "name": "close_session",
                 "description": "Close a browser session",
                 "parameters": {
@@ -349,6 +600,8 @@ class BrowseruseService(BaseMCPService):
                     "screenshot": session.take_screenshot(),
                     "format": "base64"
                 }
+            elif tool_name == "observe":
+                return session.observe()
             elif tool_name == "close_session":
                 return await self._close_session(session_id)
             else:

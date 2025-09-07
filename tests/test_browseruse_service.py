@@ -149,6 +149,68 @@ class TestBrowserSession:
         
         assert result == "fake-base64-data"
         mock_driver.get_screenshot_as_base64.assert_called_once()
+    
+    def test_observe(self, browser_session):
+        """Test observe function."""
+        mock_driver = MagicMock()
+        
+        # Mock JavaScript execution result
+        mock_dom_data = {
+            "interactive_elements": [
+                {
+                    "tag": "button",
+                    "text": "Click me",
+                    "dom_path": "body > button:nth-child(1).btn.primary",
+                    "attributes": {"type": "button", "class": "btn primary"},
+                    "bounds": {"x": 10, "y": 20, "width": 100, "height": 30}
+                },
+                {
+                    "tag": "a",
+                    "text": "Link text",
+                    "dom_path": "body > a:nth-child(2).nav-link",
+                    "attributes": {"href": "https://example.com"},
+                    "bounds": {"x": 150, "y": 20, "width": 80, "height": 20}
+                }
+            ],
+            "content_elements": [
+                {
+                    "tag": "h1",
+                    "text": "Main Heading",
+                    "dom_path": "body > h1:nth-child(1)",
+                    "attributes": {}
+                }
+            ],
+            "page_structure": {
+                "title": "Test Page",
+                "url": "https://example.com",
+                "viewport": {"width": 1920, "height": 1080}
+            }
+        }
+        
+        mock_driver.execute_script.return_value = mock_dom_data
+        browser_session.driver = mock_driver
+        
+        result = browser_session.observe()
+        
+        assert result["status"] == "success"
+        assert "raw_data" in result
+        assert "formatted_text" in result
+        assert result["interactive_count"] == 2
+        assert result["content_count"] == 1
+        assert "=== PAGE OBSERVATION ===" in result["formatted_text"]
+        assert "Test Page" in result["formatted_text"]
+        assert "INTERACTIVE ELEMENTS (2)" in result["formatted_text"]
+        assert "Click me" in result["formatted_text"]
+        assert "body > button:nth-child(1).btn.primary" in result["formatted_text"]
+        
+        mock_driver.execute_script.assert_called_once()
+    
+    def test_observe_no_driver(self, browser_session):
+        """Test observe without driver should raise error."""
+        with pytest.raises(RuntimeError) as exc_info:
+            browser_session.observe()
+        
+        assert "Browser session not started" in str(exc_info.value)
 
 
 class TestBrowseruseService:
@@ -198,7 +260,7 @@ class TestBrowseruseService:
         tool_names = [tool["name"] for tool in tools]
         expected_tools = [
             "create_session", "navigate", "find_elements",
-            "click_element", "type_text", "take_screenshot", "close_session"
+            "click_element", "type_text", "take_screenshot", "observe", "close_session"
         ]
         
         for expected_tool in expected_tools:
@@ -287,6 +349,32 @@ class TestBrowseruseService:
         
         assert "error" in result
         assert "Session not found" in result["error"]
+    
+    @pytest.mark.asyncio
+    async def test_observe_tool(self, service):
+        """Test observe tool."""
+        # Create mock session
+        mock_session = MagicMock()
+        mock_observe_result = {
+            "status": "success",
+            "raw_data": {"interactive_elements": [], "content_elements": []},
+            "formatted_text": "=== PAGE OBSERVATION ===\nTitle: Test\n",
+            "interactive_count": 0,
+            "content_count": 0
+        }
+        mock_session.observe.return_value = mock_observe_result
+        service.sessions["test-session"] = mock_session
+        
+        result = await service.call_tool(
+            "observe",
+            {},
+            "test-session"
+        )
+        
+        assert result["status"] == "success"
+        assert "formatted_text" in result
+        assert result["interactive_count"] == 0
+        mock_session.observe.assert_called_once()
     
     @pytest.mark.asyncio
     async def test_tool_exception_handling(self, service):
