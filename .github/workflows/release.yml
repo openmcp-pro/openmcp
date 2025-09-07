@@ -93,7 +93,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
           name: release-assets
           path: dist/
@@ -143,7 +143,7 @@ jobs:
     environment: pypi
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
           name: release-assets
           path: dist/
@@ -162,7 +162,7 @@ jobs:
     environment: test-pypi
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
           name: release-assets
           path: dist/
