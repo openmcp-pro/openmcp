@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Started - OpenMCP Documentation</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-robot"></i>
+                <span>OpenMCP</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="getting-started.html" class="nav-link active">Getting Started</a></li>
+                <li><a href="api-reference.html" class="nav-link">API Reference</a></li>
+                <li><a href="examples.html" class="nav-link">Examples</a></li>
+                <li><a href="https://github.com/openmcp/openmcp" class="nav-link" target="_blank">
+                    <i class="fab fa-github"></i> GitHub
+                </a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <main style="padding-top: 70px;">
+        <div class="container" style="max-width: 800px; padding: 2rem 1rem;">
+            <header style="text-align: center; margin-bottom: 3rem;">
+                <h1 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fas fa-rocket" style="color: var(--primary-color);"></i>
+                    Getting Started
+                </h1>
+                <p style="font-size: 1.1rem; color: var(--text-secondary);">
+                    Get up and running with OpenMCP in minutes
+                </p>
+            </header>
+
+            <!-- Prerequisites -->
+            <section style="margin-bottom: 3rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fas fa-list-check" style="color: var(--secondary-color);"></i>
+                    Prerequisites
+                </h2>
+                <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                    <ul style="list-style: none; margin: 0;">
+                        <li style="padding: 0.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-check" style="color: var(--secondary-color);"></i>
+                            <strong>Python 3.9+</strong> - Required for running OpenMCP
+                        </li>
+                        <li style="padding: 0.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-check" style="color: var(--secondary-color);"></i>
+                            <strong>Chrome/Chromium</strong> - For browser automation (auto-installed via webdriver-manager)
+                        </li>
+                        <li style="padding: 0.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-check" style="color: var(--secondary-color);"></i>
+                            <strong>pip</strong> - Python package manager
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Installation -->
+            <section style="margin-bottom: 3rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fas fa-download" style="color: var(--primary-color);"></i>
+                    Installation
+                </h2>
+                
+                <h3 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    Option 1: Install from PyPI (Recommended)
+                </h3>
+                <pre><code class="language-bash">pip install openmcp</code></pre>
+
+                <h3 style="font-size: 1.3rem; font-weight: 600; margin: 2rem 0 1rem; color: var(--text-primary);">
+                    Option 2: Install from Source
+                </h3>
+                <pre><code class="language-bash">git clone https://github.com/openmcp/openmcp.git
+cd openmcp
+pip install -e .</code></pre>
+
+                <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 0.5rem; padding: 1rem; margin-top: 1rem;">
+                    <p style="margin: 0; color: #92400e;">
+                        <i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i>
+                        <strong>Note:</strong> On first run, OpenMCP will automatically download the Chrome WebDriver if not already installed.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Quick Setup -->
+            <section style="margin-bottom: 3rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fas fa-cog" style="color: var(--accent-color);"></i>
+                    Quick Setup
+                </h2>
+
+                <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                        Step 1: Initialize Configuration
+                    </h3>
+                    <pre><code class="language-bash">openmcp init-config</code></pre>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                        This creates a <code>config.yaml</code> file with default settings and generates an API key.
+                    </p>
+                </div>
+
+                <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                        Step 2: Start the Server
+                    </h3>
+                    <pre><code class="language-bash">openmcp serve</code></pre>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                        The server will start on <code>http://localhost:9000</code> by default.
+                    </p>
+                </div>
+
+                <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                        Step 3: Test the Installation
+                    </h3>
+                    <pre><code class="language-python">import openmcp
+import asyncio
+
+async def test_openmcp():
+    async with openmcp.browser() as browser:
+        await browser.navigate("https://example.com")
+        await browser.screenshot("test.png")
+        print("✅ OpenMCP is working!")
+
+asyncio.run(test_openmcp())</code></pre>
+                </div>
+            </section>
+
+            <!-- Configuration -->
+            <section style="margin-bottom: 3rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fas fa-sliders-h" style="color: var(--secondary-color);"></i>
+                    Configuration
+                </h2>
+
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                    OpenMCP uses a YAML configuration file. Here's the default configuration:
+                </p>
+
+                <pre><code class="language-yaml"># config.yaml
+server:
+  host: "0.0.0.0"
+  port: 9000
+  log_level: "INFO"
+
+auth:
+  secret_key: "your-secret-key-here"
+  api_keys:
+    default:
+      name: "default"
+      permissions: ["browseruse"]
+
+services:
+  - name: "browseruse"
+    enabled: true
+    config:
+      headless: true
+      timeout: 30
+      max_sessions: 5</code></pre>
+
+                <h3 style="font-size: 1.3rem; font-weight: 600; margin: 2rem 0 1rem; color: var(--text-primary);">
+                    Environment Variables
+                </h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    You can also configure OpenMCP using environment variables:
+                </p>
+
+                <pre><code class="language-bash"># Server configuration
+export OPENMCP_HOST=0.0.0.0
+export OPENMCP_PORT=9000
+export OPENMCP_SECRET_KEY=your-secret-key
+
+# Service configuration
+export BROWSERUSE_HEADLESS=true
+export BROWSERUSE_TIMEOUT=30
+export BROWSERUSE_MAX_SESSIONS=5</code></pre>
+            </section>
+
+            <!-- CLI Commands -->
+            <section style="margin-bottom: 3rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fas fa-terminal" style="color: var(--primary-color);"></i>
+                    CLI Commands
+                </h2>
+
+                <div style="display: grid; gap: 1rem;">
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">
+                            <code>openmcp serve</code>
+                        </h4>
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Start the OpenMCP server</p>
+                        <pre><code class="language-bash"># Basic usage
+openmcp serve
+
+# Custom host and port
+openmcp serve --host 0.0.0.0 --port 8000
+
+# With custom config file
+openmcp serve --config /path/to/config.yaml
+
+# Enable auto-reload for development
+openmcp serve --reload</code></pre>
+                    </div>
+
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">
+                            <code>openmcp init-config</code>
+                        </h4>
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Initialize a default configuration file</p>
+                        <pre><code class="language-bash"># Create config.yaml in current directory
+openmcp init-config
+
+# Create config in specific location
+openmcp init-config --output /path/to/config.yaml
+
+# Force overwrite existing config
+openmcp init-config --force</code></pre>
+                    </div>
+
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">
+                            <code>openmcp create-key</code>
+                        </h4>
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Create a new API key</p>
+                        <pre><code class="language-bash"># Create a new API key
+openmcp create-key my-app
+
+# Create key with expiration
+openmcp create-key my-app --expires 30
+
+# Use custom config file
+openmcp create-key my-app --config /path/to/config.yaml</code></pre>
+                    </div>
+
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">
+                            <code>openmcp list-services</code>
+                        </h4>
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">List available MCP services</p>
+                        <pre><code class="language-bash">openmcp list-services</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Docker Setup -->
+            <section style="margin-bottom: 3rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fab fa-docker" style="color: #2496ed;"></i>
+                    Docker Setup
+                </h2>
+
+                <h3 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    Using Docker Compose (Recommended)
+                </h3>
+                <pre><code class="language-yaml"># docker-compose.yml
+version: '3.8'
+
+services:
+  openmcp:
+    image: openmcp/openmcp:latest
+    ports:
+      - "9000:9000"
+    environment:
+      - OPENMCP_SECRET_KEY=your-secret-key
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+    restart: unless-stopped</code></pre>
+
+                <pre><code class="language-bash"># Start with Docker Compose
+docker-compose up -d</code></pre>
+
+                <h3 style="font-size: 1.3rem; font-weight: 600; margin: 2rem 0 1rem; color: var(--text-primary);">
+                    Using Docker directly
+                </h3>
+                <pre><code class="language-bash"># Build the image
+docker build -t openmcp .
+
+# Run the container
+docker run -p 9000:9000 \
+  -e OPENMCP_SECRET_KEY=your-secret \
+  -v $(pwd)/config.yaml:/app/config.yaml:ro \
+  openmcp</code></pre>
+            </section>
+
+            <!-- Troubleshooting -->
+            <section style="margin-bottom: 3rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fas fa-wrench" style="color: var(--accent-color);"></i>
+                    Troubleshooting
+                </h2>
+
+                <div style="display: grid; gap: 1rem;">
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem; padding: 1.5rem;">
+                        <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: #dc2626;">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Chrome/WebDriver Issues
+                        </h4>
+                        <p style="color: #7f1d1d; margin-bottom: 1rem;">
+                            If you encounter Chrome or WebDriver issues:
+                        </p>
+                        <pre style="background: #7f1d1d; color: white;"><code># Install Chrome manually (Ubuntu/Debian)
+wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google.list
+sudo apt-get update
+sudo apt-get install google-chrome-stable
+
+# Or use Chromium
+sudo apt-get install chromium-browser</code></pre>
+                    </div>
+
+                    <div style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 0.5rem; padding: 1.5rem;">
+                        <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: #d97706;">
+                            <i class="fas fa-info-circle"></i>
+                            Port Already in Use
+                        </h4>
+                        <p style="color: #92400e; margin-bottom: 1rem;">
+                            If port 9000 is already in use:
+                        </p>
+                        <pre style="background: #92400e; color: white;"><code># Use a different port
+openmcp serve --port 8000
+
+# Or set in config.yaml
+server:
+  port: 8000</code></pre>
+                    </div>
+
+                    <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 0.5rem; padding: 1.5rem;">
+                        <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: #059669;">
+                            <i class="fas fa-lightbulb"></i>
+                            Permission Issues
+                        </h4>
+                        <p style="color: #065f46; margin-bottom: 1rem;">
+                            If you get permission errors:
+                        </p>
+                        <pre style="background: #065f46; color: white;"><code># Install in user directory
+pip install --user openmcp
+
+# Or use virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install openmcp</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Next Steps -->
+            <section style="margin-bottom: 3rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fas fa-arrow-right" style="color: var(--secondary-color);"></i>
+                    Next Steps
+                </h2>
+
+                <div style="display: grid; gap: 1rem;">
+                    <a href="api-reference.html" style="display: block; background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem; text-decoration: none; color: inherit; transition: all 0.3s ease;">
+                        <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--primary-color);">
+                            <i class="fas fa-book"></i>
+                            API Reference
+                        </h4>
+                        <p style="color: var(--text-secondary); margin: 0;">
+                            Explore the complete API documentation and learn about all available endpoints and methods.
+                        </p>
+                    </a>
+
+                    <a href="examples.html" style="display: block; background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem; text-decoration: none; color: inherit; transition: all 0.3s ease;">
+                        <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--secondary-color);">
+                            <i class="fas fa-code"></i>
+                            Examples
+                        </h4>
+                        <p style="color: var(--text-secondary); margin: 0;">
+                            Check out practical examples and code snippets to get started quickly.
+                        </p>
+                    </a>
+
+                    <a href="https://github.com/openmcp/openmcp" target="_blank" style="display: block; background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem; text-decoration: none; color: inherit; transition: all 0.3s ease;">
+                        <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--accent-color);">
+                            <i class="fab fa-github"></i>
+                            GitHub Repository
+                        </h4>
+                        <p style="color: var(--text-secondary); margin: 0;">
+                            Visit the GitHub repository for source code, issues, and contributions.
+                        </p>
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>OpenMCP</h4>
+                    <p>The Ultimate MCP Server for AI Agents</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul>
+                        <li><a href="getting-started.html">Getting Started</a></li>
+                        <li><a href="api-reference.html">API Reference</a></li>
+                        <li><a href="examples.html">Examples</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 OpenMCP Contributors. Licensed under MIT License.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
+
+
+

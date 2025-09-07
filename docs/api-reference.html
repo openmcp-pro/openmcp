@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Reference - OpenMCP Documentation</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-robot"></i>
+                <span>OpenMCP</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="getting-started.html" class="nav-link">Getting Started</a></li>
+                <li><a href="api-reference.html" class="nav-link active">API Reference</a></li>
+                <li><a href="examples.html" class="nav-link">Examples</a></li>
+                <li><a href="https://github.com/openmcp/openmcp" class="nav-link" target="_blank">
+                    <i class="fab fa-github"></i> GitHub
+                </a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <main style="padding-top: 70px;">
+        <div class="container" style="max-width: 1000px; padding: 2rem 1rem;">
+            <header style="text-align: center; margin-bottom: 3rem;">
+                <h1 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fas fa-book" style="color: var(--primary-color);"></i>
+                    API Reference
+                </h1>
+                <p style="font-size: 1.1rem; color: var(--text-secondary);">
+                    Complete reference for OpenMCP HTTP API and Python client
+                </p>
+            </header>
+
+            <!-- Table of Contents -->
+            <section style="margin-bottom: 3rem;">
+                <div style="background: var(--bg-secondary); border-radius: 0.5rem; padding: 1.5rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                        <i class="fas fa-list"></i> Table of Contents
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                        <div>
+                            <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--primary-color);">HTTP API</h4>
+                            <ul style="list-style: none; margin: 0;">
+                                <li><a href="#authentication" style="color: var(--text-secondary); text-decoration: none;">Authentication</a></li>
+                                <li><a href="#browser-sessions" style="color: var(--text-secondary); text-decoration: none;">Browser Sessions</a></li>
+                                <li><a href="#navigation" style="color: var(--text-secondary); text-decoration: none;">Navigation</a></li>
+                                <li><a href="#element-interaction" style="color: var(--text-secondary); text-decoration: none;">Element Interaction</a></li>
+                                <li><a href="#screenshots" style="color: var(--text-secondary); text-decoration: none;">Screenshots</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--secondary-color);">Python Client</h4>
+                            <ul style="list-style: none; margin: 0;">
+                                <li><a href="#python-client" style="color: var(--text-secondary); text-decoration: none;">Client Overview</a></li>
+                                <li><a href="#browser-context" style="color: var(--text-secondary); text-decoration: none;">Browser Context</a></li>
+                                <li><a href="#session-management" style="color: var(--text-secondary); text-decoration: none;">Session Management</a></li>
+                                <li><a href="#utility-functions" style="color: var(--text-secondary); text-decoration: none;">Utility Functions</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Authentication -->
+            <section id="authentication" style="margin-bottom: 3rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fas fa-key" style="color: var(--primary-color);"></i>
+                    Authentication
+                </h2>
+                
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                    OpenMCP uses API key authentication. Include your API key in the Authorization header:
+                </p>
+
+                <pre><code class="language-bash">curl -H "Authorization: Bearer your-api-key" \
+     http://localhost:9000/api/v1/health</code></pre>
+
+                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 0.5rem; padding: 1rem; margin-top: 1rem;">
+                    <p style="margin: 0; color: #065f46;">
+                        <i class="fas fa-info-circle" style="color: #10b981;"></i>
+                        <strong>Getting API Keys:</strong> Use <code>openmcp init-config</code> to generate a default API key, or <code>openmcp create-key &lt;name&gt;</code> to create additional keys.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Browser Sessions -->
+            <section id="browser-sessions" style="margin-bottom: 3rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fas fa-browser" style="color: var(--secondary-color);"></i>
+                    Browser Sessions
+                </h2>
+
+                <div style="display: grid; gap: 1.5rem;">
+                    <!-- Create Session -->
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h3 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                            Create Browser Session
+                        </h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <strong>Endpoint:</strong> <code>POST /api/v1/browseruse/create_session</code>
+                            </div>
+                            <div>
+                                <strong>Returns:</strong> Session ID
+                            </div>
+                        </div>
+                        
+                        <h4 style="font-weight: 600; margin-bottom: 0.5rem;">Request Body:</h4>
+                        <pre><code class="language-json">{
+  "headless": true,
+  "timeout": 30,
+  "window_size": {
+    "width": 1920,
+    "height": 1080
+  }
+}</code></pre>
+
+                        <h4 style="font-weight: 600; margin: 1rem 0 0.5rem;">Response:</h4>
+                        <pre><code class="language-json">{
+  "session_id": "session_abc123",
+  "status": "created"
+}</code></pre>
+
+                        <h4 style="font-weight: 600; margin: 1rem 0 0.5rem;">cURL Example:</h4>
+                        <pre><code class="language-bash">curl -X POST \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{"headless": true, "timeout": 30}' \
+  http://localhost:9000/api/v1/browseruse/create_session</code></pre>
+                    </div>
+
+                    <!-- List Sessions -->
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h3 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                            List Active Sessions
+                        </h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <strong>Endpoint:</strong> <code>GET /api/v1/browseruse/sessions</code>
+                            </div>
+                            <div>
+                                <strong>Returns:</strong> List of active sessions
+                            </div>
+                        </div>
+
+                        <h4 style="font-weight: 600; margin-bottom: 0.5rem;">Response:</h4>
+                        <pre><code class="language-json">{
+  "sessions": [
+    {
+      "session_id": "session_abc123",
+      "created_at": "2024-01-01T12:00:00Z",
+      "status": "active"
+    }
+  ]
+}</code></pre>
+                    </div>
+
+                    <!-- Close Session -->
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h3 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                            Close Browser Session
+                        </h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <strong>Endpoint:</strong> <code>POST /api/v1/browseruse/close_session</code>
+                            </div>
+                            <div>
+                                <strong>Returns:</strong> Confirmation
+                            </div>
+                        </div>
+
+                        <h4 style="font-weight: 600; margin-bottom: 0.5rem;">Request Body:</h4>
+                        <pre><code class="language-json">{
+  "session_id": "session_abc123"
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <section id="navigation" style="margin-bottom: 3rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fas fa-compass" style="color: var(--accent-color);"></i>
+                    Navigation
+                </h2>
+
+                <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                    <h3 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                        Navigate to URL
+                    </h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div>
+                            <strong>Endpoint:</strong> <code>POST /api/v1/browseruse/navigate</code>
+                        </div>
+                        <div>
+                            <strong>Returns:</strong> Navigation result
+                        </div>
+                    </div>
+
+                    <h4 style="font-weight: 600; margin-bottom: 0.5rem;">Request Body:</h4>
+                    <pre><code class="language-json">{
+  "session_id": "session_abc123",
+  "url": "https://example.com",
+  "wait_for": "load",
+  "timeout": 30
+}</code></pre>
+
+                    <h4 style="font-weight: 600; margin: 1rem 0 0.5rem;">Parameters:</h4>
+                    <ul style="list-style: none; margin: 0;">
+                        <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                            <code>session_id</code> - Browser session ID (required)
+                        </li>
+                        <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                            <code>url</code> - Target URL (required)
+                        </li>
+                        <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                            <code>wait_for</code> - Wait condition: "load", "domcontentloaded", "networkidle" (optional)
+                        </li>
+                        <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                            <code>timeout</code> - Timeout in seconds (optional, default: 30)
+                        </li>
+                    </ul>
+
+                    <h4 style="font-weight: 600; margin: 1rem 0 0.5rem;">Response:</h4>
+                    <pre><code class="language-json">{
+  "url": "https://example.com",
+  "title": "Example Domain",
+  "status": "success"
+}</code></pre>
+                </div>
+            </section>
+
+            <!-- Element Interaction -->
+            <section id="element-interaction" style="margin-bottom: 3rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fas fa-mouse-pointer" style="color: var(--primary-color);"></i>
+                    Element Interaction
+                </h2>
+
+                <div style="display: grid; gap: 1.5rem;">
+                    <!-- Find Elements -->
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h3 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                            Find Elements
+                        </h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <strong>Endpoint:</strong> <code>POST /api/v1/browseruse/find_elements</code>
+                            </div>
+                            <div>
+                                <strong>Returns:</strong> List of matching elements
+                            </div>
+                        </div>
+
+                        <h4 style="font-weight: 600; margin-bottom: 0.5rem;">Request Body:</h4>
+                        <pre><code class="language-json">{
+  "session_id": "session_abc123",
+  "selector": "#submit-button",
+  "by": "css",
+  "timeout": 10
+}</code></pre>
+
+                        <h4 style="font-weight: 600; margin: 1rem 0 0.5rem;">Selector Types:</h4>
+                        <ul style="list-style: none; margin: 0;">
+                            <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                                <code>css</code> - CSS selector (default)
+                            </li>
+                            <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                                <code>xpath</code> - XPath expression
+                            </li>
+                            <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                                <code>id</code> - Element ID
+                            </li>
+                            <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                                <code>name</code> - Element name attribute
+                            </li>
+                            <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                                <code>class</code> - CSS class name
+                            </li>
+                            <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                                <code>tag</code> - HTML tag name
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Click Element -->
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h3 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                            Click Element
+                        </h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <strong>Endpoint:</strong> <code>POST /api/v1/browseruse/click_element</code>
+                            </div>
+                            <div>
+                                <strong>Returns:</strong> Click result
+                            </div>
+                        </div>
+
+                        <h4 style="font-weight: 600; margin-bottom: 0.5rem;">Request Body:</h4>
+                        <pre><code class="language-json">{
+  "session_id": "session_abc123",
+  "selector": "button[type='submit']",
+  "by": "css",
+  "wait_for_element": true,
+  "timeout": 10
+}</code></pre>
+                    </div>
+
+                    <!-- Type Text -->
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h3 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                            Type Text
+                        </h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <strong>Endpoint:</strong> <code>POST /api/v1/browseruse/type_text</code>
+                            </div>
+                            <div>
+                                <strong>Returns:</strong> Typing result
+                            </div>
+                        </div>
+
+                        <h4 style="font-weight: 600; margin-bottom: 0.5rem;">Request Body:</h4>
+                        <pre><code class="language-json">{
+  "session_id": "session_abc123",
+  "selector": "input[name='username']",
+  "text": "john_doe",
+  "clear_first": true,
+  "by": "css"
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Screenshots -->
+            <section id="screenshots" style="margin-bottom: 3rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fas fa-camera" style="color: var(--secondary-color);"></i>
+                    Screenshots
+                </h2>
+
+                <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                    <h3 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                        Take Screenshot
+                    </h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div>
+                            <strong>Endpoint:</strong> <code>POST /api/v1/browseruse/take_screenshot</code>
+                        </div>
+                        <div>
+                            <strong>Returns:</strong> Base64 encoded image
+                        </div>
+                    </div>
+
+                    <h4 style="font-weight: 600; margin-bottom: 0.5rem;">Request Body:</h4>
+                    <pre><code class="language-json">{
+  "session_id": "session_abc123",
+  "full_page": false,
+  "element_selector": null,
+  "format": "png"
+}</code></pre>
+
+                    <h4 style="font-weight: 600; margin: 1rem 0 0.5rem;">Parameters:</h4>
+                    <ul style="list-style: none; margin: 0;">
+                        <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                            <code>session_id</code> - Browser session ID (required)
+                        </li>
+                        <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                            <code>full_page</code> - Capture full page or viewport only (optional, default: false)
+                        </li>
+                        <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                            <code>element_selector</code> - CSS selector to capture specific element (optional)
+                        </li>
+                        <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                            <code>format</code> - Image format: "png" or "jpeg" (optional, default: "png")
+                        </li>
+                    </ul>
+
+                    <h4 style="font-weight: 600; margin: 1rem 0 0.5rem;">Response:</h4>
+                    <pre><code class="language-json">{
+  "screenshot": "iVBORw0KGgoAAAANSUhEUgAA...",
+  "format": "png",
+  "size": {
+    "width": 1920,
+    "height": 1080
+  }
+}</code></pre>
+                </div>
+            </section>
+
+            <!-- Python Client -->
+            <section id="python-client" style="margin-bottom: 3rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fab fa-python" style="color: #3776ab;"></i>
+                    Python Client
+                </h2>
+
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                    OpenMCP provides a simple Python client that wraps the HTTP API for easy integration.
+                </p>
+
+                <div style="display: grid; gap: 1.5rem;">
+                    <!-- Basic Usage -->
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h3 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                            Basic Usage
+                        </h3>
+                        <pre><code class="language-python">import openmcp
+import asyncio
+
+async def main():
+    # Simple browser automation
+    async with openmcp.browser() as browser:
+        await browser.navigate("https://example.com")
+        await browser.click("#submit-button")
+        await browser.type("input[name='search']", "OpenMCP")
+        await browser.screenshot("result.png")
+
+asyncio.run(main())</code></pre>
+                    </div>
+
+                    <!-- MCP Client -->
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h3 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                            MCP Client
+                        </h3>
+                        <pre><code class="language-python">import openmcp
+
+# Initialize client with API key
+mcp = openmcp.MCP("browseruse", api_key="your-api-key")
+
+# Create a session
+session = await mcp.create_session(headless=True)
+
+# Use the session
+await session.navigate("https://example.com")
+elements = await session.find_elements("a")
+await session.close()</code></pre>
+                    </div>
+
+                    <!-- Browser Context Manager -->
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h3 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                            Browser Context Manager
+                        </h3>
+                        <pre><code class="language-python">import openmcp
+
+# Context manager automatically handles session lifecycle
+async with openmcp.browser(headless=False) as browser:
+    # Navigate to page
+    await browser.navigate("https://github.com/login")
+    
+    # Fill login form
+    await browser.type("input[name='login']", "username")
+    await browser.type("input[name='password']", "password")
+    await browser.click("input[type='submit']")
+    
+    # Wait for navigation
+    await browser.wait_for_url("https://github.com/")
+    
+    # Take screenshot
+    screenshot_data = await browser.screenshot()
+    
+# Session automatically closed when exiting context</code></pre>
+                    </div>
+
+                    <!-- Utility Functions -->
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h3 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                            Utility Functions
+                        </h3>
+                        <pre><code class="language-python">import openmcp
+
+# One-liner screenshot
+await openmcp.screenshot("https://example.com", "example.png")
+
+# Test form filling
+await openmcp.test_form("https://httpbin.org/forms/post", {
+    "custname": "John Doe",
+    "custtel": "555-1234",
+    "custemail": "john@example.com"
+})
+
+# Ensure server is running
+if await openmcp.ensure_server_running():
+    print("OpenMCP server is ready!")
+else:
+    print("Please start OpenMCP server first")</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Error Handling -->
+            <section style="margin-bottom: 3rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fas fa-exclamation-triangle" style="color: var(--accent-color);"></i>
+                    Error Handling
+                </h2>
+
+                <div style="display: grid; gap: 1.5rem;">
+                    <!-- HTTP Errors -->
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h3 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                            HTTP API Errors
+                        </h3>
+                        <pre><code class="language-json">{
+  "error": "ElementNotFound",
+  "message": "Element with selector '#missing-element' not found",
+  "details": {
+    "selector": "#missing-element",
+    "timeout": 10
+  }
+}</code></pre>
+
+                        <h4 style="font-weight: 600; margin: 1rem 0 0.5rem;">Common Error Codes:</h4>
+                        <ul style="list-style: none; margin: 0;">
+                            <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                                <code>400</code> - Bad Request (invalid parameters)
+                            </li>
+                            <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                                <code>401</code> - Unauthorized (invalid API key)
+                            </li>
+                            <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                                <code>404</code> - Not Found (session or element not found)
+                            </li>
+                            <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                                <code>408</code> - Request Timeout (operation timed out)
+                            </li>
+                            <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                                <code>500</code> - Internal Server Error
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Python Client Errors -->
+                    <div style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.5rem;">
+                        <h3 style="font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                            Python Client Error Handling
+                        </h3>
+                        <pre><code class="language-python">import openmcp
+from openmcp import MCPError
+
+try:
+    async with openmcp.browser() as browser:
+        await browser.navigate("https://example.com")
+        await browser.click("#missing-button")
+        
+except MCPError as e:
+    print(f"OpenMCP Error: {e}")
+    print(f"Error type: {e.error_type}")
+    print(f"Details: {e.details}")
+    
+except Exception as e:
+    print(f"Unexpected error: {e}")</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Rate Limits -->
+            <section style="margin-bottom: 3rem;">
+                <h2 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                    <i class="fas fa-tachometer-alt" style="color: var(--primary-color);"></i>
+                    Rate Limits & Best Practices
+                </h2>
+
+                <div style="background: var(--bg-secondary); border-radius: 0.5rem; padding: 1.5rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">
+                        Default Limits
+                    </h3>
+                    <ul style="list-style: none; margin: 0;">
+                        <li style="padding: 0.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-clock" style="color: var(--secondary-color);"></i>
+                            <strong>Max Sessions:</strong> 5 concurrent browser sessions per API key
+                        </li>
+                        <li style="padding: 0.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-stopwatch" style="color: var(--secondary-color);"></i>
+                            <strong>Session Timeout:</strong> 30 minutes of inactivity
+                        </li>
+                        <li style="padding: 0.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-hourglass-half" style="color: var(--secondary-color);"></i>
+                            <strong>Operation Timeout:</strong> 30 seconds per operation
+                        </li>
+                    </ul>
+
+                    <h3 style="font-size: 1.2rem; font-weight: 600; margin: 2rem 0 1rem; color: var(--text-primary);">
+                        Best Practices
+                    </h3>
+                    <ul style="list-style: none; margin: 0;">
+                        <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                            <i class="fas fa-check" style="color: var(--secondary-color);"></i>
+                            Always close sessions when done to free up resources
+                        </li>
+                        <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                            <i class="fas fa-check" style="color: var(--secondary-color);"></i>
+                            Use context managers in Python for automatic cleanup
+                        </li>
+                        <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                            <i class="fas fa-check" style="color: var(--secondary-color);"></i>
+                            Set appropriate timeouts for your use case
+                        </li>
+                        <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                            <i class="fas fa-check" style="color: var(--secondary-color);"></i>
+                            Handle errors gracefully and retry when appropriate
+                        </li>
+                        <li style="padding: 0.25rem 0; color: var(--text-secondary);">
+                            <i class="fas fa-check" style="color: var(--secondary-color);"></i>
+                            Use headless mode for better performance in production
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>OpenMCP</h4>
+                    <p>The Ultimate MCP Server for AI Agents</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul>
+                        <li><a href="getting-started.html">Getting Started</a></li>
+                        <li><a href="api-reference.html">API Reference</a></li>
+                        <li><a href="examples.html">Examples</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 OpenMCP Contributors. Licensed under MIT License.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
+
+
+

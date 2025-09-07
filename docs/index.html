@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenMCP - The Ultimate MCP Server for AI Agents</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-robot"></i>
+                <span>OpenMCP</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home" class="nav-link active">Home</a></li>
+                <li><a href="getting-started.html" class="nav-link">Getting Started</a></li>
+                <li><a href="api-reference.html" class="nav-link">API Reference</a></li>
+                <li><a href="examples.html" class="nav-link">Examples</a></li>
+                <li><a href="https://github.com/openmcp/openmcp" class="nav-link" target="_blank">
+                    <i class="fab fa-github"></i> GitHub
+                </a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="hero">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <h1 class="hero-title">
+                        <i class="fas fa-rocket"></i>
+                        OpenMCP
+                    </h1>
+                    <p class="hero-subtitle">The Ultimate MCP Server for AI Agents</p>
+                    <p class="hero-description">
+                        Supercharge your AI coding assistants with powerful web automation capabilities.
+                        Production-ready MCP server that gives AI agents superpowers for browser automation.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="getting-started.html" class="btn btn-primary">
+                            <i class="fas fa-play"></i>
+                            Get Started
+                        </a>
+                        <a href="https://github.com/openmcp/openmcp" class="btn btn-secondary" target="_blank">
+                            <i class="fab fa-github"></i>
+                            View on GitHub
+                        </a>
+                    </div>
+                    <div class="hero-badges">
+                        <img src="https://img.shields.io/badge/python-3.9+-blue.svg" alt="Python 3.9+">
+                        <img src="https://img.shields.io/badge/FastAPI-0.104+-green.svg" alt="FastAPI">
+                        <img src="https://img.shields.io/badge/docker-ready-blue.svg" alt="Docker Ready">
+                        <img src="https://img.shields.io/badge/MCP-compatible-purple.svg" alt="MCP Compatible">
+                        <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License">
+                    </div>
+                </div>
+                <div class="hero-demo">
+                    <div class="terminal">
+                        <div class="terminal-header">
+                            <div class="terminal-buttons">
+                                <span class="btn-close"></span>
+                                <span class="btn-minimize"></span>
+                                <span class="btn-maximize"></span>
+                            </div>
+                            <span class="terminal-title">Terminal</span>
+                        </div>
+                        <div class="terminal-body">
+                            <div class="terminal-line">
+                                <span class="prompt">$</span>
+                                <span class="command">pip install openmcp</span>
+                            </div>
+                            <div class="terminal-line">
+                                <span class="prompt">$</span>
+                                <span class="command">openmcp serve</span>
+                            </div>
+                            <div class="terminal-output">
+                                <span class="success">✅ OpenMCP server started on http://localhost:9000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features">
+            <div class="container">
+                <h2 class="section-title">Why Choose OpenMCP?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Enterprise Ready</h3>
+                        <ul>
+                            <li>API Key Authentication</li>
+                            <li>Permission Management</li>
+                            <li>Rate Limiting</li>
+                            <li>Audit Logging</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <h3>Universal Access</h3>
+                        <ul>
+                            <li>HTTP REST API</li>
+                            <li>Native MCP Protocol</li>
+                            <li>Remote Access</li>
+                            <li>Load Balancer Ready</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-browser"></i>
+                        </div>
+                        <h3>Browser Automation</h3>
+                        <ul>
+                            <li>Session Management</li>
+                            <li>Element Interaction</li>
+                            <li>Screenshot Capture</li>
+                            <li>Form Automation</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <h3>Developer Friendly</h3>
+                        <ul>
+                            <li>Simple Python API</li>
+                            <li>Comprehensive Docs</li>
+                            <li>Rich Examples</li>
+                            <li>Docker Support</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Use Cases Section -->
+        <section class="use-cases">
+            <div class="container">
+                <h2 class="section-title">Perfect for AI-Powered Development</h2>
+                <div class="use-cases-grid">
+                    <div class="use-case">
+                        <div class="use-case-icon">
+                            <i class="fas fa-cursor"></i>
+                        </div>
+                        <h3>Cursor Integration</h3>
+                        <p>Let Cursor automate web testing and scraping tasks seamlessly.</p>
+                    </div>
+                    <div class="use-case">
+                        <div class="use-case-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h3>Claude Desktop</h3>
+                        <p>Give Claude the ability to browse and interact with websites directly.</p>
+                    </div>
+                    <div class="use-case">
+                        <div class="use-case-icon">
+                            <i class="fas fa-code-branch"></i>
+                        </div>
+                        <h3>VS Code Extensions</h3>
+                        <p>Power up your AI coding assistants with web automation capabilities.</p>
+                    </div>
+                    <div class="use-case">
+                        <div class="use-case-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <h3>Custom AI Agents</h3>
+                        <p>Build intelligent agents that can navigate and interact with the web.</p>
+                    </div>
+                    <div class="use-case">
+                        <div class="use-case-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <h3>Data Collection</h3>
+                        <p>Automate web scraping and form filling for data gathering tasks.</p>
+                    </div>
+                    <div class="use-case">
+                        <div class="use-case-icon">
+                            <i class="fas fa-vial"></i>
+                        </div>
+                        <h3>Testing Automation</h3>
+                        <p>Let AI write and run comprehensive web tests automatically.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Start Section -->
+        <section class="quick-start">
+            <div class="container">
+                <h2 class="section-title">Quick Start</h2>
+                <div class="quick-start-content">
+                    <div class="quick-start-steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h3>Install OpenMCP</h3>
+                                <pre><code class="language-bash">pip install openmcp</code></pre>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h3>Initialize Configuration</h3>
+                                <pre><code class="language-bash">openmcp init-config</code></pre>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h3>Start the Server</h3>
+                                <pre><code class="language-bash">openmcp serve</code></pre>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <h3>Use in Your Code</h3>
+                                <pre><code class="language-python">import openmcp
+
+async with openmcp.browser() as browser:
+    await browser.navigate("https://example.com")
+    await browser.screenshot("page.png")</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Section -->
+        <section class="architecture">
+            <div class="container">
+                <h2 class="section-title">Architecture Overview</h2>
+                <div class="architecture-diagram">
+                    <div class="arch-component">
+                        <div class="arch-box ai-agents">
+                            <h4>AI Agents</h4>
+                            <ul>
+                                <li>HTTP Clients</li>
+                                <li>MCP Clients</li>
+                                <li>Any Language</li>
+                            </ul>
+                        </div>
+                        <div class="arch-arrow">↔</div>
+                        <div class="arch-box openmcp-server">
+                            <h4>OpenMCP Server</h4>
+                            <ul>
+                                <li>HTTP API</li>
+                                <li>MCP Protocol</li>
+                                <li>Authentication</li>
+                            </ul>
+                        </div>
+                        <div class="arch-arrow">↔</div>
+                        <div class="arch-box services">
+                            <h4>Services</h4>
+                            <ul>
+                                <li>Browseruse</li>
+                                <li>Future Services...</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>OpenMCP</h4>
+                    <p>The Ultimate MCP Server for AI Agents</p>
+                    <div class="social-links">
+                        <a href="https://github.com/openmcp/openmcp" target="_blank">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul>
+                        <li><a href="getting-started.html">Getting Started</a></li>
+                        <li><a href="api-reference.html">API Reference</a></li>
+                        <li><a href="examples.html">Examples</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Community</h4>
+                    <ul>
+                        <li><a href="https://github.com/openmcp/openmcp/issues" target="_blank">Issues</a></li>
+                        <li><a href="https://github.com/openmcp/openmcp/discussions" target="_blank">Discussions</a></li>
+                        <li><a href="https://github.com/openmcp/openmcp/blob/main/CONTRIBUTING.md" target="_blank">Contributing</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 OpenMCP Contributors. Licensed under MIT License.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
+
+
+
