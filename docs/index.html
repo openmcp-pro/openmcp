@@ -4,12 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OpenMCP - The Ultimate MCP Server for AI Agents</title>
+    <meta name="description" content="OpenMCP is a production-ready MCP server that supercharges AI coding assistants with powerful web automation capabilities. Features browser automation, session management, API key authentication, and seamless integration with Cursor, Claude Desktop, and other AI agents.">
+    <meta name="keywords" content="MCP server, AI agents, web automation, browser automation, Cursor integration, Claude Desktop, Python API, REST API, AI coding assistant">
+    <meta name="author" content="OpenMCP Contributors">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://openmcp.github.io/openmcp/">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="OpenMCP - The Ultimate MCP Server for AI Agents">
+    <meta property="og:description" content="Production-ready MCP server that supercharges AI coding assistants with powerful web automation capabilities. Seamless integration with Cursor, Claude Desktop, and other AI agents.">
+    <meta property="og:url" content="https://openmcp.github.io/openmcp/">
+    <meta property="og:site_name" content="OpenMCP">
+    <meta property="og:image" content="https://openmcp.github.io/openmcp/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="OpenMCP - The Ultimate MCP Server for AI Agents">
+    <meta name="twitter:description" content="Production-ready MCP server that supercharges AI coding assistants with powerful web automation capabilities.">
+    <meta name="twitter:image" content="https://openmcp.github.io/openmcp/og-image.png">
+    
+    <!-- Additional SEO Meta Tags -->
+    <meta name="theme-color" content="#6366f1">
+    <meta name="application-name" content="OpenMCP">
+    <meta name="msapplication-TileColor" content="#6366f1">
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "OpenMCP",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Python",
+      "description": "OpenMCP is a production-ready MCP server that supercharges AI coding assistants with powerful web automation capabilities. Features browser automation, session management, API key authentication, and seamless integration with Cursor, Claude Desktop, and other AI agents.",
+      "url": "https://openmcp.github.io/openmcp/",
+      "downloadUrl": "https://pypi.org/project/openmcp/",
+      "softwareVersion": "latest",
+      "datePublished": "2024-01-01",
+      "dateModified": "2024-01-01",
+      "author": {
+        "@type": "Organization",
+        "name": "OpenMCP Contributors"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "OpenMCP Contributors"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "applicationSubCategory": "Web Automation",
+      "keywords": "MCP server, AI agents, web automation, browser automation, Cursor integration, Claude Desktop, Python API, REST API, AI coding assistant",
+      "programmingLanguage": "Python",
+      "runtimePlatform": "Python 3.9+",
+      "installUrl": "https://pypi.org/project/openmcp/",
+      "codeRepository": "https://github.com/openmcp/openmcp",
+      "supportingData": {
+        "@type": "WebSite",
+        "name": "OpenMCP Documentation",
+        "url": "https://openmcp.github.io/openmcp/"
+      }
+    }
+    </script>
 </head>
 <body>
-    <nav class="navbar">
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
         <div class="nav-container">
             <div class="nav-logo">
                 <i class="fas fa-robot"></i>
@@ -32,9 +100,9 @@
         </div>
     </nav>
 
-    <main>
+    <main role="main">
         <!-- Hero Section -->
-        <section id="home" class="hero">
+        <section id="home" class="hero" role="banner">
             <div class="hero-container">
                 <div class="hero-content">
                     <h1 class="hero-title">
@@ -93,9 +161,9 @@
         </section>
 
         <!-- Features Section -->
-        <section class="features">
+        <section class="features" role="region" aria-labelledby="features-heading">
             <div class="container">
-                <h2 class="section-title">Why Choose OpenMCP?</h2>
+                <h2 id="features-heading" class="section-title">Why Choose OpenMCP?</h2>
                 <div class="features-grid">
                     <div class="feature-card">
                         <div class="feature-icon">
@@ -280,7 +348,7 @@ async with openmcp.browser() as browser:
         </section>
     </main>
 
-    <footer class="footer">
+    <footer class="footer" role="contentinfo">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
