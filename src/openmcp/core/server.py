@@ -13,7 +13,7 @@ from .auth import AuthManager
 from .config import Config
 from .mcp_registry import MCPRegistry
 from ..api.routes import create_api_router
-from ..services import BrowseruseService
+from ..services import BrowseruseService, WebSearchService, WebCrawlerService
 
 logger = structlog.get_logger(__name__)
 
@@ -33,6 +33,8 @@ class OpenMCPServer:
     def _register_services(self) -> None:
         """Register available MCP services."""
         self.mcp_registry.register_service_class("browseruse", BrowseruseService)
+        self.mcp_registry.register_service_class("web_search", WebSearchService)
+        self.mcp_registry.register_service_class("web_crawler", WebCrawlerService)
     
     async def start_services(self) -> None:
         """Start configured MCP services."""

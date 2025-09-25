@@ -17,3 +17,8 @@ structlog>=23.2.0
 rich>=13.7.0
 typer>=0.9.0
 pyyaml>=6.0.1
+
+# Web scraping and search
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0

@@ -148,6 +148,20 @@ class BrowserSession:
         
         return result["result"]
     
+    async def observe(self) -> Dict[str, Any]:
+        """Get simplified text-based DOM tree of important visible elements with interaction paths."""
+        if self._closed:
+            raise MCPError("Session is closed")
+        
+        result = await self.client._call_tool("observe", {
+            "session_id": self.session_id
+        })
+        
+        if not result.get("success"):
+            raise MCPError(f"Observe failed: {result.get('error')}")
+        
+        return result["result"]
+    
     async def close(self):
         """Close the browser session."""
         if self._closed:
@@ -223,14 +237,21 @@ class MCPClient:
     
     async def _call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Call a tool on the MCP service."""
+        # Extract session_id if it's in arguments (for proper API format)
+        session_id = arguments.pop("session_id", None) if "session_id" in arguments else None
+        
         async with httpx.AsyncClient(timeout=60.0) as client:
+            request_data = {
+                "tool_name": tool_name,
+                "arguments": arguments
+            }
+            if session_id:
+                request_data["session_id"] = session_id
+                
             response = await client.post(
                 f"{self.base_url}/api/v1/services/{self.service_name}/call",
                 headers=self.headers,
-                json={
-                    "tool_name": tool_name,
-                    "arguments": arguments
-                }
+                json=request_data
             )
             
             if response.status_code != 200:
