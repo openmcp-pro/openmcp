@@ -25,6 +25,12 @@ class AuthConfig(BaseModel):
     access_token_expire_minutes: int = Field(
         default=30, description="Access token expiration in minutes"
     )
+    allow_localhost: bool = Field(
+        default=True, description="Allow localhost connections without API key"
+    )
+    mock_api_key: str = Field(
+        default="openmcp-localhost-auth", description="Mock API key for testing"
+    )
 
 
 class MCPServiceConfig(BaseModel):

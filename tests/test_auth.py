@@ -16,7 +16,9 @@ class TestAuthManager:
         return AuthConfig(
             secret_key="test-secret-key-for-testing",
             algorithm="HS256",
-            access_token_expire_minutes=30
+            access_token_expire_minutes=30,
+            allow_localhost=True,
+            mock_api_key="openmcp-localhost-auth"
         )
     
     @pytest.fixture
@@ -128,6 +130,60 @@ class TestAuthManager:
         # Validation should fail
         with pytest.raises(Exception):
             auth_manager.validate_api_key(api_key)
+    
+    def test_localhost_bypass(self, auth_manager):
+        """Test localhost authentication bypass."""
+        # Test localhost IPs
+        localhost_ips = ["127.0.0.1", "::1", "localhost"]
+        
+        for ip in localhost_ips:
+            # Should create localhost API key
+            key_obj = auth_manager.validate_api_key("any-key", client_ip=ip)
+            assert key_obj.name == "localhost"
+            assert key_obj.key == "localhost-bypass"
+            assert key_obj.permissions["browseruse"] is True
+            assert key_obj.permissions["web_search"] is True
+            assert key_obj.permissions["web_crawler"] is True
+    
+    def test_mock_api_key(self, auth_manager):
+        """Test mock API key functionality."""
+        # Test mock API key
+        key_obj = auth_manager.validate_api_key("openmcp-localhost-auth")
+        assert key_obj.name == "mock"
+        assert key_obj.key == "openmcp-localhost-auth"
+        assert key_obj.permissions["browseruse"] is True
+        assert key_obj.permissions["web_search"] is True
+        assert key_obj.permissions["web_crawler"] is True
+    
+    def test_non_localhost_requires_auth(self, auth_manager):
+        """Test that non-localhost IPs still require valid API keys."""
+        # Non-localhost IP should fail without valid key
+        with pytest.raises(Exception):
+            auth_manager.validate_api_key("invalid-key", client_ip="192.168.1.1")
+    
+    def test_localhost_detection(self, auth_manager):
+        """Test localhost IP detection."""
+        # Test various localhost representations
+        assert auth_manager._is_localhost("127.0.0.1") is True
+        assert auth_manager._is_localhost("127.0.0.2") is True  # 127.x.x.x range
+        assert auth_manager._is_localhost("::1") is True
+        assert auth_manager._is_localhost("localhost") is True
+        assert auth_manager._is_localhost("0.0.0.0") is True
+        
+        # Test non-localhost IPs
+        assert auth_manager._is_localhost("192.168.1.1") is False
+        assert auth_manager._is_localhost("10.0.0.1") is False
+        assert auth_manager._is_localhost("8.8.8.8") is False
+    
+    def test_permission_check_with_localhost(self, auth_manager):
+        """Test permission checking with localhost bypass."""
+        # Test localhost permission check
+        result = auth_manager.check_permission("any-key", "browseruse", client_ip="127.0.0.1")
+        assert result is True
+        
+        # Test mock key permission check
+        result = auth_manager.check_permission("openmcp-localhost-auth", "web_search")
+        assert result is True
 
 
 class TestAPIKey:

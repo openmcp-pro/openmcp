@@ -57,8 +57,17 @@ class AuthManager:
         self.api_keys[key] = api_key
         return key
     
-    def validate_api_key(self, api_key: str) -> APIKey:
-        """Validate an API key."""
+    def validate_api_key(self, api_key: str, client_ip: str = None) -> APIKey:
+        """Validate an API key or allow localhost bypass."""
+        # Check if this is a localhost request and localhost is allowed
+        if client_ip and self.config.allow_localhost and self._is_localhost(client_ip):
+            return self._create_localhost_api_key()
+        
+        # Check if this is the mock API key
+        if api_key == self.config.mock_api_key:
+            return self._create_mock_api_key()
+        
+        # Regular API key validation
         if api_key not in self.api_keys:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -81,9 +90,37 @@ class AuthManager:
         
         return key_obj
     
-    def check_permission(self, api_key: str, service: str) -> bool:
+    def _is_localhost(self, client_ip: str) -> bool:
+        """Check if the client IP is localhost."""
+        localhost_ips = {
+            "127.0.0.1", 
+            "::1", 
+            "localhost",
+            "0.0.0.0"  # Sometimes seen in Docker environments
+        }
+        return client_ip in localhost_ips or client_ip.startswith("127.")
+    
+    def _create_localhost_api_key(self) -> APIKey:
+        """Create a temporary API key for localhost requests."""
+        return APIKey(
+            key="localhost-bypass",
+            name="localhost",
+            created_at=datetime.utcnow(),
+            permissions={"browseruse": True, "web_search": True, "web_crawler": True}
+        )
+    
+    def _create_mock_api_key(self) -> APIKey:
+        """Create a temporary API key for mock requests."""
+        return APIKey(
+            key=self.config.mock_api_key,
+            name="mock",
+            created_at=datetime.utcnow(),
+            permissions={"browseruse": True, "web_search": True, "web_crawler": True}
+        )
+    
+    def check_permission(self, api_key: str, service: str, client_ip: str = None) -> bool:
         """Check if API key has permission for a service."""
-        key_obj = self.validate_api_key(api_key)
+        key_obj = self.validate_api_key(api_key, client_ip)
         return key_obj.permissions.get(service, False)
     
     def revoke_api_key(self, api_key: str) -> bool:

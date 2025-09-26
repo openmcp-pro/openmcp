@@ -2,7 +2,7 @@
 
 from typing import Dict, List
 
-from fastapi import APIRouter, Depends, HTTPException, Header, status
+from fastapi import APIRouter, Depends, HTTPException, Header, status, Request
 from fastapi.security import HTTPBearer
 
 from ..core.auth import AuthManager, APIKey
@@ -26,14 +26,22 @@ def create_api_router(auth_manager: AuthManager, mcp_registry: MCPRegistry) -> A
     router = APIRouter()
     
     async def get_current_api_key(
+        request: Request,
         authorization: str = Header(None)
     ) -> APIKey:
-        """Get current API key from Authorization header."""
+        """Get current API key from Authorization header or allow localhost bypass."""
+        # Get client IP address
+        client_ip = request.client.host if request.client else None
+        
+        # If no authorization header, check if localhost is allowed
         if not authorization:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authorization header required"
-            )
+            if client_ip and auth_manager.config.allow_localhost and auth_manager._is_localhost(client_ip):
+                return auth_manager._create_localhost_api_key()
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Authorization header required"
+                )
         
         # Extract token from "Bearer <token>" format
         try:
@@ -46,7 +54,7 @@ def create_api_router(auth_manager: AuthManager, mcp_registry: MCPRegistry) -> A
                 detail="Invalid authorization header format"
             )
         
-        return auth_manager.validate_api_key(token)
+        return auth_manager.validate_api_key(token, client_ip)
     
     @router.post("/auth/keys", response_model=APIKeyResponse)
     async def create_api_key(
@@ -119,11 +127,15 @@ def create_api_router(auth_manager: AuthManager, mcp_registry: MCPRegistry) -> A
     @router.get("/services/{service_name}/tools", response_model=ToolListResponse)
     async def list_service_tools(
         service_name: str,
+        request: Request,
         current_key: APIKey = Depends(get_current_api_key)
     ):
         """List tools available for a specific service."""
+        # Get client IP for permission check
+        client_ip = request.client.host if request.client else None
+        
         # Check permission
-        if not auth_manager.check_permission(current_key.key, service_name):
+        if not auth_manager.check_permission(current_key.key, service_name, client_ip):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"No permission for service: {service_name}"
@@ -142,12 +154,16 @@ def create_api_router(auth_manager: AuthManager, mcp_registry: MCPRegistry) -> A
     @router.post("/services/{service_name}/call", response_model=ToolCallResponse)
     async def call_service_tool(
         service_name: str,
-        request: ToolCallRequest,
+        tool_request: ToolCallRequest,
+        request: Request,
         current_key: APIKey = Depends(get_current_api_key)
     ):
         """Call a tool on a specific service."""
+        # Get client IP for permission check
+        client_ip = request.client.host if request.client else None
+        
         # Check permission
-        if not auth_manager.check_permission(current_key.key, service_name):
+        if not auth_manager.check_permission(current_key.key, service_name, client_ip):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"No permission for service: {service_name}"
@@ -162,9 +178,9 @@ def create_api_router(auth_manager: AuthManager, mcp_registry: MCPRegistry) -> A
         
         try:
             result = await service.call_tool(
-                request.tool_name,
-                request.arguments,
-                request.session_id
+                tool_request.tool_name,
+                tool_request.arguments,
+                tool_request.session_id
             )
             
             # Check if result contains an error
@@ -172,21 +188,21 @@ def create_api_router(auth_manager: AuthManager, mcp_registry: MCPRegistry) -> A
                 return ToolCallResponse(
                     success=False,
                     result=result,
-                    session_id=result.get("session_id", request.session_id),
+                    session_id=result.get("session_id", tool_request.session_id),
                     error=result["error"]
                 )
             
             return ToolCallResponse(
                 success=True,
                 result=result,
-                session_id=result.get("session_id", request.session_id)
+                session_id=result.get("session_id", tool_request.session_id)
             )
         
         except Exception as e:
             return ToolCallResponse(
                 success=False,
                 result={},
-                session_id=request.session_id,
+                session_id=tool_request.session_id,
                 error=str(e)
             )
     
