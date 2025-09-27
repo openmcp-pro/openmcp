@@ -5,6 +5,7 @@ This provides proper MCP protocol support with SSE and streamable-http transport
 """
 
 import asyncio
+import json
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 from mcp.server.fastmcp import FastMCP
@@ -54,45 +55,98 @@ def create_mcp_app(config_path: Optional[Path] = None) -> FastMCP:
                 tool_name = tool_info["name"] 
                 tool_description = tool_info.get("description", "")
                 
-                # Create the tool function dynamically
-                def create_tool_func(svc, tname):
-                    async def tool_func(**kwargs) -> str:
-                        try:
-                            result = await svc.call_tool(tname, kwargs)
-                            
-                            if isinstance(result, dict):
-                                if "error" in result:
-                                    return f"Error: {result['error']}"
-                                else:
-                                    import json
-                                    return json.dumps(result, indent=2)
-                            else:
-                                return str(result)
-                                
-                        except Exception as e:
-                            return f"Error executing {tname}: {str(e)}"
+                # Create a tool function with proper closure to capture service and tool_name
+                def create_tool_func(service_instance, tool_name_capture, tool_description_capture):
                     
-                    return tool_func
+                    # Define specific tool signatures for common tools
+                    if tool_name_capture == "create_session":
+                        @app.tool(name=tool_name_capture, description=tool_description_capture)
+                        async def create_session_tool(headless: bool = True, timeout: int = 30) -> str:
+                            try:
+                                result = await service_instance.call_tool("create_session", {"headless": headless, "timeout": timeout})
+                                return json.dumps(result, indent=2) if isinstance(result, dict) else str(result)
+                            except Exception as e:
+                                return f"Error executing create_session: {str(e)}"
+                        return create_session_tool
+                        
+                    elif tool_name_capture == "navigate":
+                        @app.tool(name=tool_name_capture, description=tool_description_capture)
+                        async def navigate_tool(url: str, session_id: str = None) -> str:
+                            try:
+                                args = {"url": url}
+                                if session_id:
+                                    args["session_id"] = session_id
+                                result = await service_instance.call_tool("navigate", args)
+                                return json.dumps(result, indent=2) if isinstance(result, dict) else str(result)
+                            except Exception as e:
+                                return f"Error executing navigate: {str(e)}"
+                        return navigate_tool
+                        
+                    elif tool_name_capture == "take_screenshot":
+                        @app.tool(name=tool_name_capture, description=tool_description_capture)
+                        async def take_screenshot_tool(session_id: str = None) -> str:
+                            try:
+                                args = {}
+                                if session_id:
+                                    args["session_id"] = session_id
+                                result = await service_instance.call_tool("take_screenshot", args)
+                                return json.dumps(result, indent=2) if isinstance(result, dict) else str(result)
+                            except Exception as e:
+                                return f"Error executing take_screenshot: {str(e)}"
+                        return take_screenshot_tool
+                        
+                    elif tool_name_capture == "web_search":
+                        @app.tool(name=tool_name_capture, description=tool_description_capture)
+                        async def web_search_tool(query: str) -> str:
+                            try:
+                                result = await service_instance.call_tool("web_search", {"query": query})
+                                return json.dumps(result, indent=2) if isinstance(result, dict) else str(result)
+                            except Exception as e:
+                                return f"Error executing web_search: {str(e)}"
+                        return web_search_tool
+                        
+                    else:
+                        # Generic tool handler for other tools
+                        @app.tool(name=tool_name_capture, description=tool_description_capture)
+                        async def generic_tool(**kwargs) -> str:
+                            try:
+                                result = await service_instance.call_tool(tool_name_capture, kwargs)
+                                
+                                if isinstance(result, dict):
+                                    if "error" in result:
+                                        return f"Error: {result['error']}"
+                                    else:
+                                        return json.dumps(result, indent=2)
+                                else:
+                                    return str(result)
+                                    
+                            except Exception as e:
+                                return f"Error executing {tool_name_capture}: {str(e)}"
+                        return generic_tool
                 
-                # Register the tool
-                tool_func = create_tool_func(service, tool_name)
-                tool_func.__name__ = tool_name
-                app.tool(description=tool_description)(tool_func)
+                # Create and register the tool with proper closure
+                create_tool_func(service, tool_name, tool_description)
     
     return app
 
 
-def run_sse_server(config_path: Optional[Path] = None, host: str = "0.0.0.0", port: int = 9001):
+def run_sse_server(config_path: Optional[Path] = None, host: str = "0.0.0.0", port: int = 8000):
     """Run FastMCP server with SSE transport"""
     print(f"🚀 Starting OpenMCP FastMCP Server (SSE) on {host}:{port}")
-    print("⚠️  Note: FastMCP SSE transport uses default port configuration")
+    print(f"📡 FastMCP SSE endpoint: http://{host}:{port}/sse")
     app = create_mcp_app(config_path)
     app.run(transport="sse")
 
 
-def run_streamable_http_server(config_path: Optional[Path] = None, host: str = "0.0.0.0", port: int = 9002):
+def run_streamable_http_server(config_path: Optional[Path] = None, host: str = "0.0.0.0", port: int = 8001):
     """Run FastMCP server with streamable-http transport"""
     print(f"🚀 Starting OpenMCP FastMCP Server (streamable-http) on {host}:{port}")
-    print("⚠️  Note: FastMCP streamable-http transport uses default port configuration")
-    app = create_mcp_app(config_path)
-    app.run(transport="streamable-http")
+    print(f"📡 FastMCP streamable-http endpoint: http://{host}:{port}/mcp")
+    
+    # Create FastMCP app and get the ASGI application
+    mcp_app = create_mcp_app(config_path)
+    asgi_app = mcp_app.streamable_http_app()
+    
+    # Run with uvicorn
+    import uvicorn
+    uvicorn.run(asgi_app, host=host, port=port)

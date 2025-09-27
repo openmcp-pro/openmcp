@@ -55,7 +55,7 @@ def serve(
         console.print(f"[bold green]Starting OpenMCP FastMCP Server (streamable-http transport)...[/bold green]")
         try:
             from .api.mcp_server import run_streamable_http_server
-            run_streamable_http_server(config_file, host or "0.0.0.0", port or 8000)
+            run_streamable_http_server(config_file, host or "0.0.0.0", port or 8001)
         except KeyboardInterrupt:
             console.print("\n[yellow]MCP streamable-http server stopped by user[/yellow]")
     else:

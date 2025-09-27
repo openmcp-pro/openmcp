@@ -26,8 +26,8 @@ async def mcp_streamable_http_demo():
     print()
     
     # Connect using official MCP streamable HTTP client
-    # Note: OpenMCP would need to implement proper MCP HTTP endpoint
-    mcp_url = "http://localhost:9000/mcp"  # This would be the MCP HTTP endpoint
+    # Note: Connects to FastMCP streamable-http transport
+    mcp_url = "http://localhost:8001/mcp"  # FastMCP streamable-http endpoint
     
     try:
         # Use official MCP streamable HTTP client
@@ -47,14 +47,14 @@ async def mcp_streamable_http_demo():
                 # Call a tool exposed by the server
                 if tools:
                     # Example: create browser session
-                    result = await session.call_tool("create_browser_session", {"headless": True})
+                    result = await session.call_tool("create_session", {"headless": True})
                     print(f"📋 Tool result: {result}")
                 
                 print("🎉 MCP streamable HTTP demo completed!")
                 
     except Exception as e:
         print(f"❌ MCP streamable HTTP demo failed: {e}")
-        print("💡 Note: This requires OpenMCP to implement MCP HTTP endpoint at /mcp")
+        print("💡 Note: Start OpenMCP with 'openmcp serve --transport streamable-http'")
 
 
 async def mcp_sse_demo():
@@ -69,8 +69,8 @@ async def mcp_sse_demo():
     # Connect using official MCP SSE client
     from mcp.client.sse import sse_client
     
-    # Note: OpenMCP would need to implement proper MCP SSE endpoint
-    sse_url = "http://localhost:9000/mcp/sse"  # This would be the MCP SSE endpoint
+    # Note: Connects to FastMCP SSE transport
+    sse_url = "http://localhost:8000/sse"  # FastMCP SSE endpoint
     
     try:
         # Use official MCP SSE client
@@ -90,14 +90,14 @@ async def mcp_sse_demo():
                 # Call a tool exposed by the server
                 if tools:
                     # Example: create browser session
-                    result = await session.call_tool("create_browser_session", {"headless": True})
+                    result = await session.call_tool("create_session", {"headless": True})
                     print(f"📋 Tool result: {result}")
                 
                 print("🎉 MCP SSE demo completed!")
                 
     except Exception as e:
         print(f"❌ MCP SSE demo failed: {e}")
-        print("💡 Note: This requires OpenMCP to implement MCP SSE endpoint at /mcp/sse")
+        print("💡 Note: Start OpenMCP with 'openmcp serve --transport sse'")
 
 
 async def fallback_demo():
