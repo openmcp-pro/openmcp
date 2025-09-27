@@ -1,8 +1,11 @@
 """API routes for openmcp."""
 
 from typing import Dict, List
+import asyncio
+import json
 
 from fastapi import APIRouter, Depends, HTTPException, Header, status, Request
+from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer
 
 from ..core.auth import AuthManager, APIKey
@@ -205,6 +208,81 @@ def create_api_router(auth_manager: AuthManager, mcp_registry: MCPRegistry) -> A
                 session_id=tool_request.session_id,
                 error=str(e)
             )
+    
+    @router.post("/services/{service_name}/stream")
+    async def stream_service_tool(
+        service_name: str,
+        tool_request: ToolCallRequest,
+        request: Request,
+        current_key: APIKey = Depends(get_current_api_key)
+    ):
+        """Stream a tool call on a specific service with real-time updates."""
+        # Get client IP for permission check
+        client_ip = request.client.host if request.client else None
+        
+        # Check permission
+        if not auth_manager.check_permission(current_key.key, service_name, client_ip):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"No permission for service: {service_name}"
+            )
+        
+        service = mcp_registry.get_service(service_name)
+        if not service:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Service not found or not running: {service_name}"
+            )
+        
+        async def event_stream():
+            """Generate Server-Sent Events for tool execution."""
+            try:
+                # Send initial event
+                yield f"data: {json.dumps({'type': 'start', 'message': f'Starting {tool_request.tool_name}', 'timestamp': asyncio.get_event_loop().time()})}\n\n"
+                
+                # Check if service supports streaming
+                if hasattr(service, 'call_tool_stream'):
+                    # Use service's streaming method
+                    async for event in service.call_tool_stream(
+                        tool_request.tool_name,
+                        tool_request.arguments,
+                        tool_request.session_id
+                    ):
+                        yield f"data: {json.dumps(event)}\n\n"
+                else:
+                    # Fallback: execute normally and send progress updates
+                    yield f"data: {json.dumps({'type': 'progress', 'message': 'Executing tool...', 'progress': 50})}\n\n"
+                    
+                    # Execute the tool
+                    result = await service.call_tool(
+                        tool_request.tool_name,
+                        tool_request.arguments,
+                        tool_request.session_id
+                    )
+                    
+                    # Send completion event
+                    if "error" in result:
+                        yield f"data: {json.dumps({'type': 'error', 'error': result['error'], 'result': result})}\n\n"
+                    else:
+                        yield f"data: {json.dumps({'type': 'success', 'result': result, 'session_id': result.get('session_id', tool_request.session_id)})}\n\n"
+                
+                # Send final completion event
+                yield f"data: {json.dumps({'type': 'complete', 'message': 'Tool execution completed'})}\n\n"
+                
+            except Exception as e:
+                # Send error event
+                yield f"data: {json.dumps({'type': 'error', 'error': str(e), 'message': 'Tool execution failed'})}\n\n"
+        
+        return StreamingResponse(
+            event_stream(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Cache-Control"
+            }
+        )
     
     @router.get("/services/{service_name}/status")
     async def get_service_status(

@@ -2,7 +2,7 @@
 
 import asyncio
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, AsyncGenerator
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
@@ -610,6 +610,216 @@ class BrowseruseService(BaseMCPService):
         except Exception as e:
             self.logger.error("Tool call failed", tool=tool_name, error=str(e))
             return {"error": str(e)}
+    
+    async def call_tool_stream(
+        self,
+        tool_name: str,
+        arguments: Dict[str, Any],
+        session_id: Optional[str] = None
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        """Stream tool execution with real-time updates for browser operations."""
+        
+        # Send start event
+        yield {
+            "type": "start",
+            "tool_name": tool_name,
+            "session_id": session_id,
+            "message": f"Starting browser operation: {tool_name}",
+            "timestamp": asyncio.get_event_loop().time()
+        }
+        
+        try:
+            # Special handling for create_session
+            if tool_name == "create_session":
+                yield {
+                    "type": "progress",
+                    "progress": 25,
+                    "message": "Checking session limits...",
+                    "timestamp": asyncio.get_event_loop().time()
+                }
+                
+                if len(self.sessions) >= self.max_sessions:
+                    yield {
+                        "type": "error",
+                        "error": f"Maximum sessions ({self.max_sessions}) reached",
+                        "timestamp": asyncio.get_event_loop().time()
+                    }
+                    return
+                
+                yield {
+                    "type": "progress",
+                    "progress": 50,
+                    "message": "Starting browser session...",
+                    "timestamp": asyncio.get_event_loop().time()
+                }
+                
+                result = await self._create_session(arguments)
+                
+                yield {
+                    "type": "progress",
+                    "progress": 100,
+                    "message": "Browser session created successfully",
+                    "timestamp": asyncio.get_event_loop().time()
+                }
+                
+                yield {
+                    "type": "success",
+                    "result": result,
+                    "session_id": result.get("session_id"),
+                    "message": "Browser session ready",
+                    "timestamp": asyncio.get_event_loop().time()
+                }
+                return
+            
+            # For other tools, check session exists
+            if session_id is None:
+                yield {
+                    "type": "error",
+                    "error": "Session ID required for this operation",
+                    "timestamp": asyncio.get_event_loop().time()
+                }
+                return
+            
+            if session_id not in self.sessions:
+                yield {
+                    "type": "error",
+                    "error": "Session not found",
+                    "session_id": session_id,
+                    "timestamp": asyncio.get_event_loop().time()
+                }
+                return
+            
+            session = self.sessions[session_id]
+            
+            # Navigation with progress updates
+            if tool_name == "navigate":
+                url = arguments.get("url", "")
+                yield {
+                    "type": "progress",
+                    "progress": 30,
+                    "message": f"Navigating to {url}...",
+                    "timestamp": asyncio.get_event_loop().time()
+                }
+                
+                result = session.navigate(url)
+                
+                yield {
+                    "type": "progress",
+                    "progress": 80,
+                    "message": "Page loaded, getting information...",
+                    "timestamp": asyncio.get_event_loop().time()
+                }
+                
+                # Add brief delay to simulate loading time for streaming demo
+                await asyncio.sleep(0.5)
+                
+                yield {
+                    "type": "success",
+                    "result": result,
+                    "session_id": session_id,
+                    "message": f"Successfully navigated to {result.get('title', 'page')}",
+                    "timestamp": asyncio.get_event_loop().time()
+                }
+            
+            # Element interaction with progress
+            elif tool_name in ["click_element", "type_text"]:
+                selector = arguments.get("selector", "")
+                yield {
+                    "type": "progress",
+                    "progress": 40,
+                    "message": f"Finding element: {selector}...",
+                    "timestamp": asyncio.get_event_loop().time()
+                }
+                
+                if tool_name == "click_element":
+                    result = session.click_element(selector, arguments.get("by", "css"))
+                    action_msg = f"Clicked element: {selector}"
+                else:  # type_text
+                    text = arguments.get("text", "")
+                    result = session.type_text(selector, text, arguments.get("by", "css"))
+                    action_msg = f"Typed text into: {selector}"
+                
+                yield {
+                    "type": "progress",
+                    "progress": 90,
+                    "message": action_msg,
+                    "timestamp": asyncio.get_event_loop().time()
+                }
+                
+                yield {
+                    "type": "success",
+                    "result": result,
+                    "session_id": session_id,
+                    "message": action_msg,
+                    "timestamp": asyncio.get_event_loop().time()
+                }
+            
+            # Screenshot with progress
+            elif tool_name == "take_screenshot":
+                yield {
+                    "type": "progress",
+                    "progress": 50,
+                    "message": "Capturing screenshot...",
+                    "timestamp": asyncio.get_event_loop().time()
+                }
+                
+                screenshot = session.take_screenshot()
+                
+                yield {
+                    "type": "progress",
+                    "progress": 90,
+                    "message": "Processing image data...",
+                    "timestamp": asyncio.get_event_loop().time()
+                }
+                
+                result = {
+                    "screenshot": screenshot,
+                    "format": "base64"
+                }
+                
+                yield {
+                    "type": "success",
+                    "result": result,
+                    "session_id": session_id,
+                    "message": "Screenshot captured successfully",
+                    "timestamp": asyncio.get_event_loop().time()
+                }
+            
+            # Other operations fall back to default streaming
+            else:
+                yield {
+                    "type": "progress",
+                    "progress": 50,
+                    "message": f"Executing {tool_name}...",
+                    "timestamp": asyncio.get_event_loop().time()
+                }
+                
+                result = await self.call_tool(tool_name, arguments, session_id)
+                
+                if "error" in result:
+                    yield {
+                        "type": "error",
+                        "error": result["error"],
+                        "session_id": session_id,
+                        "timestamp": asyncio.get_event_loop().time()
+                    }
+                else:
+                    yield {
+                        "type": "success",
+                        "result": result,
+                        "session_id": session_id,
+                        "message": f"{tool_name} completed successfully",
+                        "timestamp": asyncio.get_event_loop().time()
+                    }
+        
+        except Exception as e:
+            yield {
+                "type": "error",
+                "error": str(e),
+                "session_id": session_id,
+                "message": f"Browser operation failed: {str(e)}",
+                "timestamp": asyncio.get_event_loop().time()
+            }
     
     async def _create_session(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new browser session."""

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenMCP SSE Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #005999;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-family: monospace;
+        }
+        
+        .log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 5px;
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+        }
+        
+        .log-start { color: #4CAF50; }
+        .log-progress { color: #2196F3; }
+        .log-success { color: #4CAF50; }
+        .log-error { color: #f44336; }
+        .log-complete { color: #FF9800; }
+        
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 20px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #4CAF50, #2196F3);
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 OpenMCP Server-Sent Events Demo</h1>
+        
+        <div class="info">
+            <strong>🏠 Localhost Mode:</strong> No API key required! This demo connects to OpenMCP running on localhost:9000
+        </div>
+        
+        <div class="status">
+            <strong>Status:</strong> <span id="connectionStatus">Not connected</span> |
+            <strong>Session:</strong> <span id="sessionStatus">None</span>
+        </div>
+        
+        <div class="controls">
+            <button onclick="createSession()">🚀 Create Browser Session</button>
+            <button onclick="navigateToSite()" id="navBtn" disabled>🌐 Navigate to Site</button>
+            <button onclick="takeScreenshot()" id="screenshotBtn" disabled>📸 Take Screenshot</button>
+            <button onclick="closeSession()" id="closeBtn" disabled>🧹 Close Session</button>
+            <button onclick="clearLog()">🗑️ Clear Log</button>
+        </div>
+        
+        <div class="input-group">
+            <label for="urlInput">Navigation URL:</label>
+            <input type="text" id="urlInput" value="https://example.com" placeholder="Enter URL to navigate to">
+        </div>
+        
+        <div class="progress-bar" style="display: none;" id="progressBar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        
+        <div class="log" id="log">
+            <div class="log-entry">📡 OpenMCP SSE Demo initialized. Click "Create Browser Session" to start!</div>
+            <div class="log-entry">🔧 Make sure OpenMCP server is running: <code>openmcp serve</code></div>
+        </div>
+    </div>
+
+    <script>
+        let currentSessionId = null;
+        let eventSource = null;
+
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logElement.appendChild(entry);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function updateStatus(connection, session = null) {
+            document.getElementById('connectionStatus').textContent = connection;
+            if (session !== null) {
+                document.getElementById('sessionStatus').textContent = session || 'None';
+                currentSessionId = session;
+            }
+        }
+
+        function updateButtons() {
+            const hasSession = currentSessionId !== null;
+            document.getElementById('navBtn').disabled = !hasSession;
+            document.getElementById('screenshotBtn').disabled = !hasSession;
+            document.getElementById('closeBtn').disabled = !hasSession;
+        }
+
+        function showProgress(show = false, progress = 0) {
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            
+            if (show) {
+                progressBar.style.display = 'block';
+                progressFill.style.width = `${progress}%`;
+            } else {
+                progressBar.style.display = 'none';
+            }
+        }
+
+        function streamToolCall(serviceName, toolName, arguments, sessionId = null) {
+            return new Promise((resolve, reject) => {
+                const payload = {
+                    tool_name: toolName,
+                    arguments: arguments
+                };
+                
+                if (sessionId) {
+                    payload.session_id = sessionId;
+                }
+
+                fetch(`http://localhost:9000/api/v1/services/${serviceName}/stream`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    updateStatus('Connected');
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    
+                    function processStream() {
+                        reader.read().then(({ done, value }) => {
+                            if (done) {
+                                showProgress(false);
+                                resolve();
+                                return;
+                            }
+                            
+                            const chunk = decoder.decode(value);
+                            const lines = chunk.split('\n');
+                            
+                            for (const line of lines) {
+                                if (line.startsWith('data: ')) {
+                                    try {
+                                        const data = JSON.parse(line.substring(6));
+                                        handleSSEEvent(data);
+                                    } catch (e) {
+                                        // Ignore malformed JSON
+                                    }
+                                }
+                            }
+                            
+                            processStream();
+                        }).catch(reject);
+                    }
+                    
+                    processStream();
+                })
+                .catch(error => {
+                    updateStatus('Error');
+                    log(`❌ Connection error: ${error.message}`, 'error');
+                    reject(error);
+                });
+            });
+        }
+
+        function handleSSEEvent(event) {
+            const { type, message, progress, result, error, session_id } = event;
+            
+            switch (type) {
+                case 'start':
+                    log(`🟢 ${message}`, 'start');
+                    showProgress(true, 0);
+                    break;
+                    
+                case 'progress':
+                    if (progress !== undefined) {
+                        log(`📊 ${message} (${progress}%)`, 'progress');
+                        showProgress(true, progress);
+                    } else {
+                        log(`📊 ${message}`, 'progress');
+                    }
+                    break;
+                    
+                case 'success':
+                    log(`✅ ${message}`, 'success');
+                    showProgress(true, 100);
+                    
+                    if (result && result.session_id) {
+                        updateStatus('Connected', result.session_id);
+                        updateButtons();
+                        log(`📋 Session ID: ${result.session_id}`, 'info');
+                    }
+                    
+                    if (result && result.title) {
+                        log(`📄 Page title: ${result.title}`, 'info');
+                    }
+                    
+                    if (result && result.url) {
+                        log(`🔗 URL: ${result.url}`, 'info');
+                    }
+                    
+                    if (result && result.screenshot) {
+                        log(`📸 Screenshot captured (${result.screenshot.length} chars)`, 'info');
+                    }
+                    break;
+                    
+                case 'error':
+                    log(`❌ ${error}`, 'error');
+                    showProgress(false);
+                    break;
+                    
+                case 'complete':
+                    log(`🎯 ${message}`, 'complete');
+                    showProgress(false);
+                    
+                    // If this was a close_session operation, clear session
+                    if (message && message.includes('close')) {
+                        updateStatus('Connected', null);
+                        updateButtons();
+                    }
+                    break;
+            }
+        }
+
+        async function createSession() {
+            log('🚀 Creating browser session...', 'start');
+            updateStatus('Connecting...');
+            
+            try {
+                await streamToolCall('browseruse', 'create_session', {
+                    headless: true,
+                    timeout: 30
+                });
+                log('✅ Session creation completed', 'success');
+            } catch (error) {
+                log(`❌ Session creation failed: ${error.message}`, 'error');
+                updateStatus('Error');
+            }
+        }
+
+        async function navigateToSite() {
+            if (!currentSessionId) {
+                log('❌ No active session', 'error');
+                return;
+            }
+            
+            const url = document.getElementById('urlInput').value;
+            log(`🌐 Navigating to ${url}...`, 'start');
+            
+            try {
+                await streamToolCall('browseruse', 'navigate', { url }, currentSessionId);
+                log('✅ Navigation completed', 'success');
+            } catch (error) {
+                log(`❌ Navigation failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function takeScreenshot() {
+            if (!currentSessionId) {
+                log('❌ No active session', 'error');
+                return;
+            }
+            
+            log('📸 Taking screenshot...', 'start');
+            
+            try {
+                await streamToolCall('browseruse', 'take_screenshot', {}, currentSessionId);
+                log('✅ Screenshot completed', 'success');
+            } catch (error) {
+                log(`❌ Screenshot failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function closeSession() {
+            if (!currentSessionId) {
+                log('❌ No active session', 'error');
+                return;
+            }
+            
+            log('🧹 Closing session...', 'start');
+            
+            try {
+                await streamToolCall('browseruse', 'close_session', {}, currentSessionId);
+                log('✅ Session closed', 'success');
+            } catch (error) {
+                log(`❌ Session close failed: ${error.message}`, 'error');
+            }
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            log('📝 Log cleared', 'info');
+        }
+
+        // Initialize
+        updateStatus('Ready');
+        updateButtons();
+    </script>
+</body>
+</html>

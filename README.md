@@ -44,8 +44,10 @@
 <td width="50%">
 
 ### 🌐 **Universal Access**
-- **HTTP REST API** - Works with any language/tool
-- **Native MCP Protocol** - Direct MCP client support
+- **Official MCP Protocol** - FastMCP with streamable-http & SSE transports
+- **Legacy REST API** - Works with any language/tool  
+- **Native MCP Clients** - Direct support for official MCP clients
+- **Real-time Streaming** - Server-Sent Events for live updates
 - **Remote Access** - Agents connect from anywhere
 - **Load Balancer Ready** - Scale horizontally
 
@@ -90,11 +92,26 @@ pip install -e .
 # Create configuration and get your API key
 openmcp init-config
 
-# Start the server
+# Start the server (FastMCP with streamable-http transport)
 openmcp serve
 ```
 
-**🎉 That's it!** Your openmcp server is running on `http://localhost:9000`
+**🎉 That's it!** Your OpenMCP FastMCP server is running on `http://localhost:8000`
+
+### 📡 Transport Options
+
+Choose your transport protocol:
+
+```bash
+# Default: Official MCP with streamable-http transport (recommended)
+openmcp serve
+
+# Official MCP with SSE transport (real-time streaming)
+openmcp serve --transport sse
+
+# Legacy REST API (for custom integrations)
+openmcp serve --transport rest --port 9000
+```
 
 ### 3. Use the Super Simple Interface
 
@@ -398,22 +415,24 @@ if __name__ == "__main__":
     asyncio.run(demo_for_cursor())
 ```
 
-### Method 2: MCP Integration (Advanced)
+### Method 2: Official MCP Integration (Recommended)
 
 For native MCP support in Cursor, add this configuration:
 
 ```json
-// .cursor/mcp_config.json
+// .cursor/mcp_config.json  
 {
   "mcpServers": {
     "openmcp": {
       "command": "openmcp",
-      "args": ["serve", "--protocol", "mcp"],
+      "args": ["serve", "--transport", "sse"],
       "env": {}
     }
   }
 }
 ```
+
+**Note:** Uses the new FastMCP SSE transport for real-time streaming support.
 
 ### 🎯 Cursor Use Cases
 
@@ -435,12 +454,14 @@ For native MCP support in Cursor, add this configuration:
 {
   "mcpServers": {
     "openmcp-browser": {
-      "command": "openmcp",
-      "args": ["serve", "--protocol", "mcp"]
+      "command": "openmcp", 
+      "args": ["serve", "--transport", "sse"]
     }
   }
 }
 ```
+
+**Note:** Uses FastMCP with SSE transport for optimal Claude Desktop integration.
 
 3. **Restart Claude Desktop** - openmcp tools will appear automatically
 
@@ -466,6 +487,106 @@ Claude: I'll help you test the contact form. Let me:
 
 [Claude automatically uses openmcp tools to complete the task]
 ```
+
+## 🚀 Transport Protocols
+
+OpenMCP supports three transport protocols to meet different integration needs:
+
+### 🎯 **Streamable-HTTP (Default & Recommended)**
+```bash
+# Start with streamable-http transport
+openmcp serve
+# or explicitly:
+openmcp serve --transport streamable-http
+```
+
+**✅ Best for:**
+- **Official MCP clients** (Cursor, Claude Desktop, custom clients)  
+- **Production deployments** - Reliable HTTP-based communication
+- **Load balancers** - Standard HTTP protocol
+- **Firewall-friendly** - Uses standard HTTP ports
+
+**🔌 Connect with:**
+```python
+from mcp.client.streamable_http import streamablehttp_client
+from mcp.client.session import ClientSession
+
+async with streamablehttp_client('http://localhost:8000/') as (read_stream, write_stream, session_id):
+    session = ClientSession(read_stream, write_stream)
+    async with session:
+        await session.initialize()
+        tools = await session.list_tools()
+```
+
+### ⚡ **Server-Sent Events (SSE)**
+```bash
+# Start with SSE transport
+openmcp serve --transport sse
+```
+
+**✅ Best for:**
+- **Real-time applications** - Live progress updates
+- **Streaming operations** - Long-running tasks with progress
+- **Web dashboards** - Browser-based monitoring
+- **Development & debugging** - Live operation visibility
+
+**🔌 Connect with:**
+```python
+from mcp.client.sse import sse_client
+from mcp.client.session import ClientSession
+
+async with sse_client('http://localhost:8000/sse') as (read_stream, write_stream):
+    session = ClientSession(read_stream, write_stream)
+    async with session:
+        await session.initialize()
+        tools = await session.list_tools()
+```
+
+### 🔧 **REST API (Legacy)**  
+```bash
+# Start with REST transport
+openmcp serve --transport rest --port 9000
+```
+
+**✅ Best for:**
+- **Custom integrations** - Direct HTTP API access
+- **Any programming language** - Standard REST endpoints
+- **Existing applications** - Drop-in replacement for web automation
+- **Quick prototyping** - Simple curl commands
+
+**🔌 Connect with:**
+```python
+import httpx
+
+# Direct REST API calls
+async with httpx.AsyncClient() as client:
+    response = await client.get("http://localhost:9000/api/v1/services")
+    services = response.json()
+    
+    # Create browser session
+    response = await client.post(
+        "http://localhost:9000/api/v1/services/browseruse/call",
+        json={"tool_name": "create_session", "arguments": {"headless": True}}
+    )
+```
+
+### 🎛️ **Transport Comparison**
+
+| Feature | Streamable-HTTP | SSE | REST API |
+|---------|----------------|-----|----------|
+| **MCP Protocol** | ✅ Official | ✅ Official | ❌ Custom |
+| **Official Clients** | ✅ Full support | ✅ Full support | ❌ Not supported |
+| **Real-time Updates** | ❌ Request/Response | ✅ Live streaming | ❌ Request/Response |
+| **HTTP Compatibility** | ✅ Standard HTTP | ✅ Standard HTTP | ✅ Standard HTTP |
+| **Custom Integrations** | ⚠️ MCP required | ⚠️ MCP required | ✅ Any language |
+| **Production Ready** | ✅ Recommended | ✅ Good | ✅ Legacy support |
+
+### 💡 **Choosing the Right Transport**
+
+- **🎯 Starting fresh?** Use **streamable-http** (default)
+- **⚡ Need real-time?** Use **SSE** transport  
+- **🔧 Custom integration?** Use **REST API** transport
+- **🤖 Official MCP clients?** Use **streamable-http** or **SSE**
 
 ## 🔧 Available Tools
 
@@ -710,6 +831,89 @@ Fix authentication bug"
 
 See [GIT_HOOKS.md](GIT_HOOKS.md) for complete documentation.
 
+## 📡 Server-Sent Events (SSE) Streaming
+
+OpenMCP supports **real-time streaming** of long-running operations using Server-Sent Events:
+
+### 🚀 Real-Time Browser Automation
+
+Stream browser operations with live progress updates:
+
+```python
+import asyncio
+import httpx
+import json
+
+async def stream_browser_session():
+    async with httpx.AsyncClient() as client:
+        async with client.stream(
+            "POST",
+            "http://localhost:9000/api/v1/services/browseruse/stream",
+            json={
+                "tool_name": "create_session",
+                "arguments": {"headless": True}
+            }
+        ) as response:
+            async for line in response.aiter_lines():
+                if line.startswith("data: "):
+                    event = json.loads(line[6:])
+                    print(f"{event['type']}: {event['message']}")
+                    
+                    if event['type'] == 'progress':
+                        print(f"Progress: {event.get('progress', 0)}%")
+
+asyncio.run(stream_browser_session())
+```
+
+### 📊 SSE Event Types
+
+- **`start`** - Operation begins
+- **`progress`** - Progress updates with percentage
+- **`success`** - Operation completed successfully  
+- **`error`** - Operation failed
+- **`complete`** - Final completion event
+
+### 🌐 Web Dashboard
+
+Open `examples/sse_web_demo.html` in your browser for a **live web interface**:
+
+- ✅ **Real-time progress bars**
+- ✅ **Live operation logs** 
+- ✅ **Interactive controls**
+- ✅ **No API key needed** (localhost)
+
+### ⚡ Quick SSE Examples
+
+```bash
+# Python streaming examples
+python examples/simple_sse_demo.py
+python examples/sse_streaming_example.py
+
+# Web interface
+open examples/sse_web_demo.html
+```
+
+### 🔧 SSE Endpoints
+
+All MCP services support streaming via `/stream` endpoints:
+
+```
+POST /api/v1/services/{service_name}/stream
+Content-Type: application/json
+
+{
+  "tool_name": "navigate",
+  "arguments": {"url": "https://example.com"},
+  "session_id": "session-id-here"
+}
+```
+
+**Perfect for:**
+- **Long-running operations** (web crawling, form automation)
+- **Real-time dashboards** (monitoring browser sessions)
+- **Progress tracking** (screenshot capture, navigation)
+- **Live debugging** (step-by-step operation visibility)
+
 ## 🤝 Contributing & Extending
 
 ### Adding New Services
@@ -789,16 +993,29 @@ echo $API_KEY
 
 **Cursor/Claude not connecting?**
 ```bash
-# Verify MCP server starts
-openmcp serve --protocol mcp
+# Verify MCP server starts with correct transport
+openmcp serve --transport sse
 
-# Check MCP configuration syntax
-# Restart Cursor/Claude Desktop
+# Check MCP configuration syntax in your client
+# Restart Cursor/Claude Desktop after configuration changes
+
+# Test official MCP client connection
+python -c "
+from mcp.client.sse import sse_client
+import asyncio
+
+async def test():
+    async with sse_client('http://localhost:8000/sse') as streams:
+        print('✅ MCP connection successful')
+
+asyncio.run(test())
+"
 ```
 
 ## 📚 Documentation & Resources
 
-- **📖 [Complete API Documentation](http://localhost:9000/docs)** - Interactive OpenAPI docs
+- **📖 [REST API Documentation](http://localhost:9000/docs)** - Interactive OpenAPI docs (when using `--transport rest`)
+- **🎯 [MCP Protocol Reference](https://modelcontextprotocol.io/)** - Official MCP specification
 - **🎯 [MCP Examples Guide](MCP_EXAMPLES.md)** - Comprehensive usage examples  
 - **⚡ [Quick Start Guide](QUICKSTART.md)** - 5-minute setup
 - **🔧 [Configuration Reference](docs/configuration.md)** - All settings explained

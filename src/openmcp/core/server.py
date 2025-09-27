@@ -86,6 +86,9 @@ class OpenMCPServer:
         api_router = create_api_router(self.auth_manager, self.mcp_registry)
         app.include_router(api_router, prefix="/api/v1")
         
+        # MCP server is handled separately via FastMCP
+        # See mcp_server.py for official MCP protocol support
+        
         # Health check endpoint
         @app.get("/health")
         async def health_check():

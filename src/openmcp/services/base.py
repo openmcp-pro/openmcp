@@ -1,7 +1,9 @@
 """Base class for MCP services."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, AsyncGenerator
+import asyncio
+import json
 
 import structlog
 
@@ -40,6 +42,66 @@ class BaseMCPService(ABC):
     ) -> Dict[str, Any]:
         """Call a tool with given arguments."""
         pass
+    
+    async def call_tool_stream(
+        self,
+        tool_name: str,
+        arguments: Dict[str, Any],
+        session_id: Optional[str] = None
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        """
+        Stream tool execution with real-time updates.
+        
+        Override this method in services that support streaming.
+        Default implementation provides basic progress updates.
+        """
+        # Send start event
+        yield {
+            "type": "start",
+            "tool_name": tool_name,
+            "session_id": session_id,
+            "message": f"Starting {tool_name}",
+            "timestamp": asyncio.get_event_loop().time()
+        }
+        
+        # Send progress event
+        yield {
+            "type": "progress",
+            "progress": 50,
+            "message": "Executing tool...",
+            "timestamp": asyncio.get_event_loop().time()
+        }
+        
+        try:
+            # Execute the tool
+            result = await self.call_tool(tool_name, arguments, session_id)
+            
+            # Send success event
+            yield {
+                "type": "success",
+                "result": result,
+                "session_id": result.get("session_id", session_id),
+                "message": "Tool execution completed successfully",
+                "timestamp": asyncio.get_event_loop().time()
+            }
+            
+        except Exception as e:
+            # Send error event
+            yield {
+                "type": "error",
+                "error": str(e),
+                "session_id": session_id,
+                "message": f"Tool execution failed: {str(e)}",
+                "timestamp": asyncio.get_event_loop().time()
+            }
+    
+    def supports_streaming(self) -> bool:
+        """Check if this service supports streaming."""
+        # Check if the service has overridden the call_tool_stream method
+        return (
+            hasattr(self, 'call_tool_stream') and 
+            self.__class__.call_tool_stream != BaseMCPService.call_tool_stream
+        )
     
     def health_check(self) -> str:
         """Check service health."""
