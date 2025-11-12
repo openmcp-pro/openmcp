@@ -2,7 +2,6 @@
 
 import logging
 import sys
-from typing import Optional
 
 import structlog
 from rich.logging import RichHandler
@@ -10,15 +9,19 @@ from rich.logging import RichHandler
 
 def setup_logging(level: str = "INFO", json_logs: bool = False) -> None:
     """Set up structured logging for openmcp."""
-    
+
     # Configure standard library logging
     logging.basicConfig(
         level=getattr(logging, level.upper()),
         format="%(message)s",
         datefmt="[%X]",
-        handlers=[RichHandler(rich_tracebacks=True)] if not json_logs else [logging.StreamHandler(sys.stdout)]
+        handlers=(
+            [RichHandler(rich_tracebacks=True)]
+            if not json_logs
+            else [logging.StreamHandler(sys.stdout)]
+        ),
     )
-    
+
     # Configure structlog
     processors = [
         structlog.stdlib.filter_by_level,
@@ -30,12 +33,12 @@ def setup_logging(level: str = "INFO", json_logs: bool = False) -> None:
         structlog.processors.format_exc_info,
         structlog.processors.UnicodeDecoder(),
     ]
-    
+
     if json_logs:
         processors.append(structlog.processors.JSONRenderer())
     else:
         processors.append(structlog.dev.ConsoleRenderer())
-    
+
     structlog.configure(
         processors=processors,
         context_class=dict,

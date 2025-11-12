@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "openmcp"
-version = "0.1.0"
+version = "0.6.0"
 description = "A collection of optimized MCP services for AI Agents"
 readme = "README.md"
 license = {text = "MIT"}
@@ -56,10 +56,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/openmcp/openmcp"
-Repository = "https://github.com/openmcp/openmcp"
-Documentation = "https://github.com/openmcp/openmcp#readme"
-Issues = "https://github.com/openmcp/openmcp/issues"
+Homepage = "https://openmcp.pro"
+Repository = "https://github.com/openmcp-pro/openmcp"
+Documentation = "https://openmcp.pro/docs"
+Issues = "https://github.com/openmcp-pro/openmcp/issues"
 
 [project.scripts]
 openmcp = "openmcp.cli:main"

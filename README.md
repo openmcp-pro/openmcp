@@ -81,7 +81,7 @@
 
 ```bash
 # Clone and install
-git clone https://github.com/openmcp/openmcp.git
+git clone https://github.com/openmcp-pro/openmcp.git
 cd openmcp
 pip install -e .
 ```
@@ -1023,10 +1023,10 @@ asyncio.run(test())
 
 ## 🌟 Community & Support
 
-- **💬 [GitHub Discussions](https://github.com/openmcp/openmcp/discussions)** - Community Q&A
-- **🐛 [Issue Tracker](https://github.com/openmcp/openmcp/issues)** - Bug reports & features
-- **📧 [Email Support](mailto:support@openmcp.org)** - Direct help
-- **🐦 [Twitter Updates](https://twitter.com/openmcp)** - Latest news
+- **🌐 [Official Website](https://openmcp.pro)** - Documentation and resources
+- **💬 [GitHub Discussions](https://github.com/openmcp-pro/openmcp/discussions)** - Community Q&A
+- **🐛 [Issue Tracker](https://github.com/openmcp-pro/openmcp/issues)** - Bug reports & features
+- **📧 [Email Support](mailto:info@openagents.org)** - Direct help
 
 ## 📄 License
 
@@ -1047,7 +1047,7 @@ Built with love using:
 
 **🚀 Ready to supercharge your AI agents with web automation?**
 
-[Get Started Now](#-quick-start-5-minutes) • [View Examples](examples/) • [Join Community](https://github.com/openmcp/openmcp/discussions)
+[Get Started Now](#-quick-start-5-minutes) • [View Examples](examples/) • [Join Community](https://openmcp.pro) • [Documentation](https://openmcp.pro/docs)
 
 Made with ❤️ for the AI development community
 
